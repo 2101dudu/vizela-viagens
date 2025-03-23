@@ -1,0 +1,16 @@
+import Image from "next/image";
+
+import { _ReviewCards } from "@/app/components";
+
+export default function Hero() {
+  return (
+    <div className="bg-highlight h-screen flex justify-center py-20">
+      <div className="w-1/2 min-w-200 h-full flex flex-col gap-10">
+        <h1 className="font-semibold text-2xl text-background">
+          Comentários dos nossos clientes
+        </h1>
+        <_ReviewCards />
+      </div>
+    </div>
+  );
+}
