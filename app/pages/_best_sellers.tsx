@@ -2,9 +2,9 @@ import Image from "next/image";
 
 export default function BestSellers() {
   return (
-    <div id="groups" className="h-screen flex justify-center my-20">
+    <div id="groups" className="h-screen flex justify-center my-36">
       <div className="w-2/3 h-full flex flex-col gap-10">
-        <h1 className="font-semibold text-2xl">Best Sellers</h1>
+        <h1 className="font-semibold text-4xl">Best Sellers</h1>
         <div className="w-full h-full grid grid-cols-3 grid-rows-3 gap-16">
           <div className="col-span-1 row-span-2 relative">
             <Image

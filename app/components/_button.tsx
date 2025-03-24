@@ -1,10 +1,12 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 
 interface ButtonProps {
   children?: React.ReactNode;
   href?: string;
-  highlight?: boolean;
+  highlighted?: boolean;
   imageSrc?: string;
   imageAlt?: string;
   imageW?: string;
@@ -29,8 +31,20 @@ export default function _Button({
     ? "bg-highlight text-background rounded-xl"
     : "";
 
+  const handleClick = (e: React.MouseEvent) => {
+    if (href?.startsWith("#")) {
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) {
+        const yOffset = -150;
+        const y = target.getBoundingClientRect().top + window.scrollY + yOffset;
+        window.scrollTo({ top: y, behavior: "smooth" });
+      }
+    }
+  };
+
   const content = (
-    <div className={`${baseStyles} ${highlightStyles}`}>
+    <div className={`${baseStyles} ${highlightStyles}`} onClick={handleClick}>
       {imageSrc ? (
         <Image
           src={imageSrc}
@@ -45,5 +59,11 @@ export default function _Button({
     </div>
   );
 
-  return href ? <Link href={href}>{content}</Link> : content;
+  return href?.startsWith("#") ? (
+    <a href={href} onClick={handleClick}>
+      {content}
+    </a>
+  ) : (
+    <Link href={href ?? "#"}>{content}</Link>
+  );
 }

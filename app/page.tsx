@@ -12,6 +12,7 @@ export default function Home() {
   return (
     <>
       <_Hero />
+      <_Groups />
       <_BestSellers />
       <_Reviews />
       <_Newsletter />

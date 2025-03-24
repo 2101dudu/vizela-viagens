@@ -1,24 +1,19 @@
 "use client";
 
-import { _Carousel, _Button } from "@/app/components";
+import { _GroupCards, _Button } from "@/app/components";
 
-export default function Groups() {
+const Groups: React.FC = () => {
   return (
-    <div id="groups" className="h-screen flex justify-center my-20">
+    <div id="groups" className="h-auto flex justify-center mt-20">
       <div className="w-2/3 h-full flex flex-col gap-10">
-        <h1 className="font-semibold text-2xl">Cruzeiros</h1>
-        <_Carousel>
-          <_Button highlighted href="/page1">
-            {" "}
-            Page 1{" "}
-          </_Button>
-          <_Button highlighted href="/page2" imageSrc="/icons/icon2.svg" />
-          <_Button highlighted href="/page3">
-            {" "}
-            Page 3{" "}
-          </_Button>
-        </_Carousel>
+        <h1 className="font-semibold text-4xl">Grupos a sair</h1>
+        <_GroupCards />
+        <div className="mx-auto">
+          <_Button highlighted>Ver mais</_Button>
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default Groups;

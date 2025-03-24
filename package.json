@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "flowbite-react": "^0.10.2",
     "framer-motion": "^12.5.0",
     "gsap": "^3.12.7",
     "next": "15.2.3",
