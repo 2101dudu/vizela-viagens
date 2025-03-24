@@ -1,4 +1,5 @@
 import { _Button } from "@/app/components";
+import Image from "next/image";
 
 export default function Newsletter() {
   return (
@@ -10,17 +11,23 @@ export default function Newsletter() {
         <h1 className="font-regular text-2xl">
           Regista-te à nossa newsletter para receberes as melhores ofertas
         </h1>
-        <div className="bg-background mt-10 w-11/12 h-20 rounded-md drop-shadow-my flex justify-end items-center">
+        <div className="bg-background mt-10 w-11/12 h-20 rounded-xl drop-shadow-my flex items-center">
+          <Image
+            className="absolute left-5"
+            src="/mail.svg"
+            width={24}
+            height={24}
+            alt={""}
+          />
           <input
             type="email"
             id="email"
             name="email"
             placeholder="Insira o seu e-mail"
-            className="w-full h-full rounded-l-md px-4 text-lg border-none bg-transparent"
+            className="w-full h-full rounded-xl pl-16 pr-40 text-lg border-none bg-transparent focus:outline-none focus:ring-highlight"
             required
           />
-          {/* Submit Button */}
-          <div className="m-5">
+          <div className="absolute right-5">
             <_Button highlighted>Aderir</_Button>
           </div>
         </div>

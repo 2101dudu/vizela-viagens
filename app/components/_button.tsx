@@ -54,7 +54,7 @@ export default function _Button({
           priority={imagePrio}
         />
       ) : (
-        <div className="font-bold">{children}</div>
+        <div className="font-bold text-xl">{children}</div>
       )}
     </div>
   );
