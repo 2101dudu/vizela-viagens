@@ -3,7 +3,7 @@ import { _Button } from "@/app/components";
 export default function NavBar() {
   return (
     <>
-      <div className="bg-background w-full fixed h-30 z-100">
+      <div className="bg-background w-full fixed h-20 z-50">
         <div className="flex items-center justify-between w-2/3 mx-auto h-full">
           <_Button
             href="/"
@@ -19,7 +19,7 @@ export default function NavBar() {
           </div>
         </div>
       </div>
-      <div className="bg-highlight w-full fixed top-30 h-1 z-100"></div>
+      <div className="bg-highlight w-full fixed top-20 h-1 z-50"></div>
     </>
   );
 }

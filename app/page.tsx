@@ -1,7 +1,6 @@
 import {
   _Hero,
-  _MainInputArea,
-  _Cruises,
+  _Groups,
   _BestSellers,
   _Reviews,
   _Newsletter,
@@ -13,8 +12,6 @@ export default function Home() {
   return (
     <>
       <_Hero />
-      <_MainInputArea />
-      <_Cruises />
       <_BestSellers />
       <_Reviews />
       <_Newsletter />

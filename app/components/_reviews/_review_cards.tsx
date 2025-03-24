@@ -20,7 +20,7 @@ export default function _ReviewCards() {
   ];
 
   return (
-    <div className="grid grid-cols-3 grid-rows-3 gap-15">
+    <div className="grid grid-cols-3 grid-rows-3 gap-16">
       {reviews.map((element, index) => (
         <_Review key={index} entry={element} shifted={index % 2 !== 0} />
       ))}

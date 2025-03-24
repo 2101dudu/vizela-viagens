@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "next/legacy/image";
 
 export default interface ReviewEntry {
   name: string;
@@ -14,7 +14,7 @@ interface Review {
 export default function _Review({ entry, shifted }: Review) {
   return (
     <div
-      className={`col-span-2 max-h-40 h-auto p-5 bg-background drop-shadow-lg rounded-sm flex justify-around gap-5 items-center" ${
+      className={`col-span-2 max-h-40 h-auto p-5 bg-background drop-shadow-lg rounded-md flex justify-around gap-5 items-center" ${
         shifted ? "col-start-2" : "col-start-1"
       }`}
     >
@@ -24,7 +24,7 @@ export default function _Review({ entry, shifted }: Review) {
             className="rounded-full"
             src={entry.photo ? entry.photo : "/_review/placeholder.svg"}
             alt={"Foto perfil " + entry.name}
-            fill
+            layout="fill"
             priority
           />
         </div>

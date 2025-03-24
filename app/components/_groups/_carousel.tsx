@@ -6,7 +6,7 @@ interface CarouselProps {
   children: React.ReactNode;
 }
 
-export default function Carousel({ children }: CarouselProps) {
+export default function _Carousel({ children }: CarouselProps) {
   const items = React.Children.toArray(children);
   const totalSlides = items.length;
 

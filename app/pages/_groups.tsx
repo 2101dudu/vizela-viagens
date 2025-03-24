@@ -2,10 +2,10 @@
 
 import { _Carousel, _Button } from "@/app/components";
 
-export default function Cruises() {
+export default function Groups() {
   return (
     <div id="groups" className="h-screen flex justify-center my-20">
-      <div className="w-1/2 min-w-200 h-full flex flex-col gap-10">
+      <div className="w-2/3 h-full flex flex-col gap-10">
         <h1 className="font-semibold text-2xl">Cruzeiros</h1>
         <_Carousel>
           <_Button highlighted href="/page1">

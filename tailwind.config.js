@@ -6,7 +6,17 @@ module.exports = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+        highlight: "var(--highlight)",
+        softBackground: "var(--soft-background)",
+      },
+      dropShadow: {
+        my: "0 0px 35px rgba(0, 0, 0, 0.35)",
+      },
+    },
   },
   plugins: [],
 };
