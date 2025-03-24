@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { _Label } from "@/app/components";
 
-export default function Hero() {
-  const labels = ["Label1", "Label2", "Label3", "Label4"];
+export default function MainInputArea() {
+  const labels = ["Destinos", "Voo + Hotel", "Hotel", "Cruzeiro"];
 
   const [selectedLabel, setSelectedLabel] = useState(0);
 
@@ -13,8 +13,8 @@ export default function Hero() {
   };
 
   return (
-    <div className="w-full flex justify-center h-40 relative -top-50  drop-shadow-xl">
-      <div className="w-1/2 min-w-200 ">
+    <div className="w-full flex justify-center h-40 relative -top-96 drop-shadow-(--my-drop-shadow)">
+      <div className="w-2/3 min-w-200 ">
         <div className="flex gap-2">
           {labels.map((element, index) => (
             <_Label
@@ -26,7 +26,7 @@ export default function Hero() {
             </_Label>
           ))}
         </div>
-        <div className="w-full h-60 bg-background"></div>
+        <div className="w-full h-70 bg-background"></div>
       </div>
     </div>
   );

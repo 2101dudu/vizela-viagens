@@ -1,8 +1,6 @@
-import Image from "next/image";
-
 import { _ReviewCards } from "@/app/components";
 
-export default function Hero() {
+export default function Reviews() {
   return (
     <div className="bg-highlight h-screen flex justify-center py-20">
       <div className="w-1/2 min-w-200 h-full flex flex-col gap-10">

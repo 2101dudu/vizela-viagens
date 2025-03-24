@@ -22,7 +22,7 @@ export default function _Review({ entry, shifted }: Review) {
         <div className="size-12 relative">
           <Image
             className="rounded-full"
-            src={entry.photo ? entry.photo : "/review/placeholder.svg"}
+            src={entry.photo ? entry.photo : "/_review/placeholder.svg"}
             alt={"Foto perfil " + entry.name}
             fill
             priority
