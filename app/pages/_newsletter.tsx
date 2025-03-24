@@ -11,8 +11,17 @@ export default function Newsletter() {
           Regista-te à nossa newsletter para receberes as melhores ofertas
         </h1>
         <div className="bg-background mt-10 w-11/12 h-20 rounded-md drop-shadow-my flex justify-end items-center">
-          <div className="size-auto m-5">
-            <_Button highlighted>Button</_Button>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="Insira o seu e-mail"
+            className="w-full h-full rounded-l-md px-4 text-lg border-none bg-transparent"
+            required
+          />
+          {/* Submit Button */}
+          <div className="m-5">
+            <_Button highlighted>Aderir</_Button>
           </div>
         </div>
       </div>
