@@ -1,43 +1,54 @@
 import Image from "next/legacy/image";
 import Link from "next/link";
 
-export default interface Group {
-  destination: string;
-  when: date;
+interface GroupDepartures {
+  when: string;
   desc1: string;
   desc2: string;
-  price: int;
+  price: number;
   href: string;
-  photo?: string;
 }
 
-export default function _Group({ entry }: Group) {
+export interface Group {
+  destination: string;
+  photo?: string;
+  departures: GroupDepartures[];
+}
+
+export default function _Group({ group }: { group: Group }) {
   return (
-    <div className="hover:scale-105 hover:cursor-pointer transition-transform duration-100 min-h-96 min-w-56 flex-1 bg-background drop-shadow-lg rounded-md flex flex-col justify-around gap-5 items-center">
-      <div className="flex-1 w-full relative bg-blend-color-burn">
-        {" "}
+    <div className="hover:scale-105 hover:cursor-pointer transition-transform duration-100 h-auto min-w-56 flex-1">
+      <div className="h-1/3 w-full relative rounded-lg">
         <Image
-          src={entry.photo ? entry.photo : "/_group/placeholder.svg"}
-          alt={"Foto destino " + entry.destination}
+          src={group.photo ? group.photo : "/_group/placeholder.svg"}
+          alt={"Foto destino " + group.destination}
           layout="fill"
           priority
+          style={{ borderTopLeftRadius: "8px", borderTopRightRadius: "8px" }}
           objectFit="cover"
-        />{" "}
+        />
+        <h1 className="w-full h-full flex items-center justify-center text-background text-2xl font-bold absolute">
+          {group.destination}
+        </h1>
       </div>
-      <h1 className="flex-1 text-center text-background text-2xl font-bold absolute top-12">
-        {entry.destination}
-      </h1>
-      <Link
-        className="hover:underline flex-1 w-full flex justify-between px-2"
-        href={entry.href}
-      >
-        <div className="w-auto pr-5">
-          <p className="text-xl font-bold">{entry.when}</p>
-          <p className="text-md">{entry.desc1}</p>
-          <p className="text-sm italic opacity-65">{entry.desc2}</p>
-        </div>
-        <p className="text-2xl text-highlight font-bold">{entry.price} €</p>
-      </Link>
+      <div className="py-4 flex flex-col gap-2 bg-background drop-shadow-lg rounded-lg">
+        {group.departures.map((departure, index) => (
+          <Link
+            key={index}
+            className="hover:underline h-auto w-full flex justify-between px-2"
+            href={departure.href}
+          >
+            <div className="w-auto pr-5">
+              <p className="text-xl font-bold">{departure.when}</p>
+              <p className="text-md">{departure.desc1}</p>
+              <p className="text-sm italic opacity-65">{departure.desc2}</p>
+            </div>
+            <p className="text-2xl text-highlight font-bold">
+              {departure.price} €
+            </p>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
