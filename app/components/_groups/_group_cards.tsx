@@ -68,7 +68,7 @@ export default function _GroupCards() {
   return (
     <div className="flex justify-between gap-7">
       {groups.map((element, index) => (
-        <_FadeIn delay={index * 100} key={index}>
+        <_FadeIn delay={index * 100} key={index} className="flex-1">
           <_Group group={element} key={index} />
         </_FadeIn>
       ))}

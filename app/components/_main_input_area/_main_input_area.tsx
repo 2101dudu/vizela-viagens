@@ -5,6 +5,7 @@ import _Label from "./_label";
 import DestinationDropdown from "./_destination_dropdown";
 import DatePicker from "./_date_picker";
 import NumberInput from "./_number_input";
+import { _Button } from "@/app/components";
 
 interface InputFieldConfig {
   component: React.FC<any>;
@@ -132,14 +133,21 @@ export default function _MainInputArea() {
         ))}
       </div>
       <div
-        className={`bg-background w-11/12 rounded-b-md rounded-tr-md p-4 ${
-          currentConfig.layout
-        }`}
+        className="relative w-11/12 rounded-b-md rounded-tr-md p-4"
+        style={{ backgroundColor: "rgba(255, 255, 255, 0.92)" }}
       >
-        {currentConfig.fields.map((field, idx) => {
-          const FieldComponent = field.component;
-          return <FieldComponent key={idx} {...field.props} />;
-        })}
+        <div className={`${currentConfig.layout}`}>
+          {currentConfig.fields.map((field, idx) => {
+            const FieldComponent = field.component;
+            return <FieldComponent key={idx} {...field.props} />;
+          })}
+        </div>
+        {/* Absolute positioned button */}
+        <div className="mt-10 w-full flex justify-end">
+          <_Button highlighted className="">
+            Pesquisar
+          </_Button>
+        </div>
       </div>
     </div>
   );
