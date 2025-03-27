@@ -25,7 +25,7 @@ export default function _Button({
   imagePrio = false,
 }: ButtonProps) {
   const baseStyles =
-    "w-auto px-8 py-2 cursor-pointer hover:scale-110 transition-transform duration-100 ease-in-out flex items-center justify-center";
+    "w-auto px-8 py-2 cursor-pointer hover:scale-105 transition-transform duration-100 ease-in-out flex items-center justify-center";
 
   const highlightStyles = highlighted
     ? "bg-highlight text-background rounded-xl"

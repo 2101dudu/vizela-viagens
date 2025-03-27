@@ -1,4 +1,5 @@
 import _Group, { Group } from "./_group";
+import { _FadeIn } from "@/app/components/";
 
 export default function _GroupCards() {
   const groups: Group[] = [
@@ -67,7 +68,9 @@ export default function _GroupCards() {
   return (
     <div className="flex justify-between gap-7">
       {groups.map((element, index) => (
-        <_Group group={element} key={index} />
+        <_FadeIn delay={index * 100} key={index}>
+          <_Group group={element} key={index} />
+        </_FadeIn>
       ))}
     </div>
   );

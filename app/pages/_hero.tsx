@@ -10,7 +10,7 @@ export default function Hero() {
           src="/_hero/background.jpg"
           alt="Imagem de fundo"
           fill
-          className="objectcover"
+          className="object-cover"
           priority
         />
         <div className="w-full relatibe top-1/3 flex justify-center h-40 relative drop-shadow-my">

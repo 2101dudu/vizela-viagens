@@ -4,9 +4,10 @@
 
 :root {
   --background: #fafafa;
+  --soft-background: #ededed;
   --foreground: #1d1d1f;
   --highlight: #30b472;
-  --soft-background: #eaeaea;
+  --soft-highlight: #53c12a;
 }
 
 body {

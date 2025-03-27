@@ -1,4 +1,5 @@
 import _BestSeller, { BestSeller } from "./_best_seller";
+import { _FadeIn } from "@/app/components/";
 
 export default function _BestSellerCards() {
   const bestSellers: BestSeller[] = [
@@ -35,7 +36,9 @@ export default function _BestSellerCards() {
   return (
     <div className="w-full h-full grid grid-cols-3 grid-rows-3 gap-16">
       {bestSellers.map((element, index) => (
-        <_BestSeller bestSeller={element} key={index} />
+        <_FadeIn key={index} delay={(index % 2) * 100} className={element.grid}>
+          <_BestSeller bestSeller={element} key={index} />
+        </_FadeIn>
       ))}
     </div>
   );

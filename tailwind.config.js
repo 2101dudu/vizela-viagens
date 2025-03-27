@@ -15,6 +15,7 @@ module.exports = {
         softBackground: "var(--soft-background)",
         foreground: "var(--foreground)",
         highlight: "var(--highlight)",
+        softhighlight: "var(--soft-highlight)",
       },
       dropShadow: {
         my: "0 0px 35px rgba(0, 0, 0, 0.15)",

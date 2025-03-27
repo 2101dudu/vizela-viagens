@@ -1,17 +1,24 @@
-import { _Button } from "@/app/components";
+import { _Button, _FadeIn } from "@/app/components";
 import Image from "next/image";
 
 export default function Newsletter() {
   return (
     <div className="h-auto flex justify-center mt-20 mb-40">
       <div className="w-1/2 h-full flex flex-col gap-10 items-center">
-        <h1 className="font-semibold text-4xl">
-          Não percas destinos incríveis
-        </h1>
-        <h1 className="font-regular text-2xl">
-          Regista-te à nossa newsletter para receberes as melhores ofertas
-        </h1>
-        <div className="bg-background mt-10 w-11/12 h-20 rounded-xl drop-shadow-my flex items-center">
+        <_FadeIn>
+          <h1 className="font-semibold text-4xl">
+            Não percas destinos incríveis
+          </h1>
+        </_FadeIn>
+        <_FadeIn delay={100}>
+          <h1 className="font-regular text-2xl">
+            Regista-te à nossa newsletter para receberes as melhores ofertas
+          </h1>
+        </_FadeIn>
+        <_FadeIn
+          delay={200}
+          className="bg-background mt-10 w-11/12 h-20 rounded-xl drop-shadow-my flex items-center"
+        >
           <Image
             className="absolute left-5"
             src="/mail.svg"
@@ -30,7 +37,7 @@ export default function Newsletter() {
           <div className="absolute right-5">
             <_Button highlighted>Aderir</_Button>
           </div>
-        </div>
+        </_FadeIn>
       </div>
     </div>
   );

@@ -16,7 +16,7 @@ export default function _BestSeller({
 }) {
   return (
     <div
-      className={`hover:scale-105 hover:cursor-pointer transition-transform duration-100 relative drop-shadow-2xl ${bestSeller.grid}`}
+      className={`h-full hover:scale-105 hover:cursor-pointer transition-transform duration-100 relative drop-shadow-2xl ${bestSeller.grid}`}
     >
       <Image
         src={
@@ -34,7 +34,10 @@ export default function _BestSeller({
           {bestSeller.destination}
         </h1>
         <div className="absolute bottom-0 right-0">
-          <div className="bg-background opacity-80 rounded-tl-md flex flex-col gap-2 items-right p-3">
+          <div
+            className="rounded-tl-md flex flex-col gap-2 items-right p-3"
+            style={{ backgroundColor: "rgba(255, 255, 255, 0.75)" }}
+          >
             <h1 className="text-xl font-semibold text-foreground">
               Apenas por
             </h1>
