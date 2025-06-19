@@ -1,9 +1,9 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import _Label from "./_label";
 import CountryDropdown from "./_country_dropdown";
-import ContinentDropdown from "./_continent_dropdown";
 import LocationDropdown from "./_location_dropdown";
 import DatePicker from "./_date_picker";
 import NumberInput from "./_number_input";
@@ -22,10 +22,15 @@ interface InputConfig {
 }
 
 export default function _MainInputArea() {
+  const router = useRouter();
+
   const travelData = useMasterData();
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedLabel, setSelectedLabel] = useState(0);
+  const [fromDate, setFromDate] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
 
   if (!travelData) {
     return <div>Loading...</div>;
@@ -57,7 +62,12 @@ export default function _MainInputArea() {
         },
         {
           component: DatePicker,
-          props: { label: "Data de partida", className: "col-span-3" },
+          props: {
+            label: "Data de partida",
+            className: "col-span-3",
+            value: fromDate,
+            onChange: setFromDate
+          },
         },
       ],
     },
@@ -148,6 +158,22 @@ export default function _MainInputArea() {
     },
   ];
 
+  const handleSearch = () => {
+    if (!fromDate) {
+      setError("A data de partida é obrigatória.");
+      return;
+    }
+
+    const query = new URLSearchParams();
+
+    query.set("from", fromDate);
+
+    if (selectedCountry) query.set("country", selectedCountry);
+    if (selectedLocation) query.set("location", selectedLocation);
+
+    router.push(`/results?${query.toString()}`);
+  };
+
   const labels = inputConfigs.map((config) => config.label);
 
   const handleLabelClick = (index: number) => {
@@ -181,10 +207,9 @@ export default function _MainInputArea() {
               return <FieldComponent key={idx} {...fieldProps} />;
           })}
         </div>
-        {/* Absolute positioned button */}
         <div className="mt-10 w-full flex justify-between">
           <p><b className="text-red-500">*</b> Campos obrigatórios</p>
-          <_Button highlighted>
+          <_Button highlighted onClick={handleSearch}>
             Pesquisar
           </_Button>
         </div>

@@ -12,7 +12,7 @@ interface ButtonProps {
   imageW?: number;
   imageH?: number;
   imagePrio?: boolean;
-  onClick?: (e: React.MouseEvent) => void; // Added onClick prop
+  onClick?: (e: React.MouseEvent) => void;
 }
 
 export default function _Button({
@@ -33,9 +33,21 @@ export default function _Button({
     ? "bg-highlight text-background rounded-xl"
     : "";
 
-  const handleClick = (e: React.MouseEvent) => {
-    if (onClick) onClick(e);
-    if (href?.startsWith("#")) {
+  const content = imageSrc ? (
+    <Image
+      src={imageSrc}
+      alt={imageAlt}
+      width={imageW}
+      height={imageH}
+      priority={imagePrio}
+    />
+  ) : (
+    <div className="font-semibold text-xl">{children}</div>
+  );
+
+  // If href is provided and starts with # (anchor), render <a> with smooth scroll
+  if (href?.startsWith("#")) {
+    const handleAnchorClick = (e: React.MouseEvent) => {
       e.preventDefault();
       const target = document.querySelector(href);
       if (target) {
@@ -43,30 +55,31 @@ export default function _Button({
         const y = target.getBoundingClientRect().top + window.scrollY + yOffset;
         window.scrollTo({ top: y, behavior: "smooth" });
       }
-    }
-  };
+    };
+    return (
+      <a href={href} onClick={handleAnchorClick} className={`${baseStyles} ${highlightStyles}`}>
+        {content}
+      </a>
+    );
+  }
 
-  const content = (
-    <div className={`${baseStyles} ${highlightStyles}`} onClick={handleClick}>
-      {imageSrc ? (
-        <Image
-          src={imageSrc}
-          alt={imageAlt}
-          width={imageH}
-          height={imageW}
-          priority={imagePrio}
-        />
-      ) : (
-        <div className="font-semibold text-xl">{children}</div>
-      )}
-    </div>
-  );
+  // If href is provided but not an anchor, render Next.js Link
+  if (href) {
+    return (
+      <Link href={href} className={`${baseStyles} ${highlightStyles}`}>
+        {content}
+      </Link>
+    );
+  }
 
-  return href?.startsWith("#") ? (
-    <a href={href} onClick={handleClick}>
+  // Else render a real button for clicks
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`${baseStyles} ${highlightStyles}`}
+    >
       {content}
-    </a>
-  ) : (
-    <Link href={href ?? "#"}>{content}</Link>
+    </button>
   );
 }

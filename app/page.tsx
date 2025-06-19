@@ -5,7 +5,7 @@ import {
   _Reviews,
   _Newsletter,
   _Footer,
-} from "@/app/pages";
+} from "@/app/components";
 
 export default function Home() {
   return (
