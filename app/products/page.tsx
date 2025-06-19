@@ -3,12 +3,10 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import _Product from "./_product";
+import LoadingDots from "@/app/components/animations/loading_dots";
+import {_FadeIn} from "@/app/components/";
 
 interface Product {
-  Code: string;
-  ProdCode: string;
-  Name: string;
-  // add the other fields as needed
 }
 
 interface ProductArray {
@@ -70,25 +68,25 @@ export default function ResultsPage() {
   }, [params]);
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Resultados</h1>
+    <div className="w-full bg-background text-foreground flex flex-col items-center">
+      <div className="w-2/3 p-6 min-h-screen">
+        {error && <p className="text-center mt-20 text-2xl font-bold text-red-500">{error}</p>}
 
-      {error && <p className="text-red-500">{error}</p>}
-
-      {loading ? (
-        <p>A carregar...</p>
-      ) : products?.ProductArray?.item?.length === 0 ? (
-        <p>Nenhum resultado encontrado.</p>
-      ) : (
-        <p>{products?.TotalProducts} produtos encontrados.</p>
-      )}
-      <ul className="space-y-4">
-        {products?.ProductArray?.item?.map((product, i) => (
-          <li key={i} className="w-full flex flex-col items-center">
-            <_Product product={product} />
-          </li>
-        ))}
-      </ul>
+        {loading ? (
+          <LoadingDots/>
+        ) : products?.TotalProducts === "0" ? (
+          <div className="text-center mt-20 text-2xl font-bold">Nenhum resultado encontrado.</div>
+        ) : <h1 className="text-2xl font-bold mb-4">Viagens</h1>}
+        <div className="w-full flex flex-wrap gap-2 justify-between">
+          {products?.ProductArray?.item?.map((product, i) => (
+            <div key={i} className="w-[30%] min-w-[200px]">
+              <_FadeIn key={i} delay={(i % 2) * 100}>
+                <_Product product={product} />
+              </_FadeIn>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
