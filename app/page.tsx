@@ -15,7 +15,6 @@ export default function Home() {
       <_BestSellers />
       <_Reviews />
       <_Newsletter />
-      <_Footer />
     </>
   );
 }
