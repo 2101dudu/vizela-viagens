@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import _Product from "./_product";
 
 interface Product {
   Code: string;
@@ -83,8 +84,8 @@ export default function ResultsPage() {
       )}
       <ul className="space-y-4">
         {products?.ProductArray?.item?.map((product, i) => (
-          <li key={i} className="bg-white p-4 shadow rounded">
-            <pre>{JSON.stringify(product, null, 2)}</pre>
+          <li key={i} className="w-full flex flex-col items-center">
+            <_Product product={product} />
           </li>
         ))}
       </ul>
