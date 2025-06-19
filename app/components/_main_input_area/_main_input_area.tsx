@@ -171,7 +171,7 @@ export default function _MainInputArea() {
     if (selectedCountry) query.set("country", selectedCountry);
     if (selectedLocation) query.set("location", selectedLocation);
 
-    router.push(`/results?${query.toString()}`);
+    router.push(`/products?${query.toString()}`);
   };
 
   const labels = inputConfigs.map((config) => config.label);

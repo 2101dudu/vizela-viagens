@@ -3,7 +3,7 @@ export { default as _MainInputArea } from "./_main_input_area/_main_input_area";
 export { default as _GroupCards } from "./_groups/_group_cards";
 export { default as _BestSellerCards } from "./_best_sellers/_best_seller_cards";
 export { default as _ReviewCards } from "./_reviews/_review_cards";
-export { default as _FadeIn } from "./_fade_in";
+export { default as _FadeIn } from "./animations/_fade_in";
 
 export { default as _Hero } from "./_hero";
 export { default as _Groups } from "./_groups/_groups";
