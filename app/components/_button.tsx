@@ -9,9 +9,10 @@ interface ButtonProps {
   highlighted?: boolean;
   imageSrc?: string;
   imageAlt?: string;
-  imageW?: string;
-  imageH?: string;
+  imageW?: number;
+  imageH?: number;
   imagePrio?: boolean;
+  onClick?: (e: React.MouseEvent) => void; // Added onClick prop
 }
 
 export default function _Button({
@@ -23,6 +24,7 @@ export default function _Button({
   imageW = 24,
   imageH = 24,
   imagePrio = false,
+  onClick,
 }: ButtonProps) {
   const baseStyles =
     "w-auto px-8 py-2 cursor-pointer hover:scale-105 transition-transform duration-100 ease-in-out flex items-center justify-center";
@@ -32,6 +34,7 @@ export default function _Button({
     : "";
 
   const handleClick = (e: React.MouseEvent) => {
+    if (onClick) onClick(e);
     if (href?.startsWith("#")) {
       e.preventDefault();
       const target = document.querySelector(href);

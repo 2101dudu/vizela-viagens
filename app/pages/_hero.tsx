@@ -4,7 +4,7 @@ import { _MainInputArea } from "@/app/components/";
 
 export default function Hero() {
   return (
-    <div id="home" className="h-screen flex items-start pt-20 mb-52">
+    <div id="home" className="h-screen flex items-start mb-52">
       <div className="w-full h-screen relative">
         <Image
           src="/_hero/background.jpg"
