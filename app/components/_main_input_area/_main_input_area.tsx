@@ -29,7 +29,6 @@ export default function _MainInputArea() {
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedLabel, setSelectedLabel] = useState(0);
   const [fromDate, setFromDate] = useState("");
-  const [error, setError] = useState<string | null>(null);
 
 
   if (!travelData) {
@@ -159,15 +158,9 @@ export default function _MainInputArea() {
   ];
 
   const handleSearch = () => {
-    if (!fromDate) {
-      setError("A data de partida é obrigatória.");
-      return;
-    }
-
     const query = new URLSearchParams();
 
-    query.set("from", fromDate);
-
+    if (fromDate) query.set("from", fromDate);
     if (selectedCountry) query.set("country", selectedCountry);
     if (selectedLocation) query.set("location", selectedLocation);
 
@@ -208,8 +201,7 @@ export default function _MainInputArea() {
           })}
         </div>
         <div className="mt-10 w-full flex justify-between">
-          <p><b className="text-red-500">*</b> Campos obrigatórios</p>
-          <_Button highlighted onClick={handleSearch}>
+          <_Button highlighted onClick={handleSearch} disabled={!fromDate && !selectedCountry && !selectedLocation}>
             Pesquisar
           </_Button>
         </div>

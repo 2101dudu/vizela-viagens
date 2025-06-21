@@ -27,16 +27,10 @@ export default function ResultsPage() {
 
   useEffect(() => {
     const fetchResults = async () => {
-      const from = params.get("from");
-      if (!from) {
-        setError("Data de partida é obrigatória.");
-        return;
-      }
-
       setLoading(true);
       try {
         const body = {
-          DepDate: from,
+          DepDate: params.get("from") || undefined,
           Country: params.get("country") || undefined,
           Location: params.get("location") || undefined,
         };
