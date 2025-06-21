@@ -11,6 +11,7 @@ const _Product = ({ product }: { product: any }) => {
           src={product.ImageUrl}
           alt={product.Name}
           fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
           style={{ objectFit: "cover" }}
         />
         <p className="w-full absolute bottom-0 bg-black bg-opacity-70 text-white text-sm text-center py-2">

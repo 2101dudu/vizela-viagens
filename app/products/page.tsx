@@ -4,52 +4,52 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import _Product from "./_product";
 import LoadingDots from "@/app/components/animations/loading_dots";
-import {_FadeIn} from "@/app/components/";
+import { _FadeIn } from "@/app/components/";
+import SearchProducts from "@/app/hooks/_search_products";
+import FetchMoreProducts from "@/app/hooks/_search_more_products";
+
 
 interface Product {
 }
 
-interface ProductArray {
-  item: Product[];
+interface PaginatedResponse {
+  token: string;
+  products: Product[];
+  hasMore: boolean;
 }
-
-interface ResponseData {
-  TotalProducts: string; // actually a string in your response
-  ProductArray: ProductArray;
-}
-
 
 export default function ResultsPage() {
   const params = useSearchParams();
-  const [loading, setLoading] = useState(false);
-  const [products, setProducts] = useState<ResponseData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [token, setToken] = useState<string | null>(null);
+  const [cursor, setCursor] = useState<number>(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
+
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchResults = async () => {
       setLoading(true);
       try {
-        const body = {
-          DepDate: params.get("from") || undefined,
-          Country: params.get("country") || undefined,
-          Location: params.get("location") || undefined,
-        };
+        const body: any = {};
+        const depDate = params.get("from");
+        const country = params.get("country");
+        const location = params.get("location");
 
-        console.log("Request Body:", body);
+        if (depDate) body.DepDate = depDate;
+        if (country) body.Country = country;
+        if (location) body.Location = location;
 
-        const res = await fetch("http://localhost:8080/api/search/product", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
+        console.log("Fetching products with body:", body);
 
-        if (!res.ok) {
-          throw new Error("Erro na resposta da API");
-        }
+        const data: PaginatedResponse = await SearchProducts(body);
 
-        const data = await res.json();
-        console.log("API Response:", data);
-        setProducts(data);
+        setProducts(data.products);
+        setToken(data.token);
+        setCursor(data.products.length);
+        setHasMore(data.hasMore ?? true);
       } catch (err) {
         setError("Erro ao buscar resultados.");
         console.error(err);
@@ -61,6 +61,23 @@ export default function ResultsPage() {
     fetchResults();
   }, [params]);
 
+  const handleSeeMore = async () => {
+    if (!token || !hasMore) return;
+
+    setLoadingMore(true);
+    try {
+      const moreProducts = await FetchMoreProducts(token, cursor);
+      setProducts((prev) => [...prev, ...moreProducts]);
+      setCursor((prev) => prev + moreProducts.length);
+      setHasMore(moreProducts.hasMore);
+    } catch (err) {
+      console.error("Erro ao carregar mais produtos:", err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+
   return (
     <div className="w-full bg-background text-foreground flex flex-col items-center">
       <div className="w-2/3 p-6 min-h-screen">
@@ -68,11 +85,11 @@ export default function ResultsPage() {
 
         {loading ? (
           <LoadingDots/>
-        ) : products?.TotalProducts === "0" ? (
+        ) : products?.length === 0 ? (
           <div className="text-center mt-20 text-2xl font-bold">Nenhum resultado encontrado.</div>
         ) : <h1 className="text-2xl font-bold mb-4">Viagens</h1>}
         <div className="w-full flex flex-wrap gap-2 justify-between">
-          {products?.ProductArray?.item?.map((product, i) => (
+          {products?.map((product, i) => (
             <div key={i} className="w-[30%] min-w-[200px]">
               <_FadeIn key={i} delay={(i % 2) * 100}>
                 <_Product product={product} />
@@ -80,6 +97,19 @@ export default function ResultsPage() {
             </div>
           ))}
         </div>
+
+        {token && hasMore && (
+          <div className="w-full text-center mt-6">
+            <button
+              onClick={handleSeeMore}
+              disabled={loadingMore}
+              className="px-6 py-2 rounded bg-foreground text-background hover:opacity-80 transition disabled:opacity-50"
+            >
+              {loadingMore ? "A carregar..." : "Ver mais"}
+            </button>
+          </div>
+        )}
+
       </div>
     </div>
   );
