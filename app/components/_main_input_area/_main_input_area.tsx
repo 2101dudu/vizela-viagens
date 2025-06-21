@@ -200,7 +200,7 @@ export default function _MainInputArea() {
               return <FieldComponent key={idx} {...fieldProps} />;
           })}
         </div>
-        <div className="mt-10 w-full flex justify-between">
+        <div className="mt-10 w-full flex justify-end">
           <_Button highlighted onClick={handleSearch} disabled={!fromDate && !selectedCountry && !selectedLocation}>
             Pesquisar
           </_Button>
