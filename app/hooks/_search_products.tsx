@@ -1,7 +1,7 @@
 export interface SearchProducts {
-  countryCode?: string;
-  locationCode?: string;
-  fromDate: string; // required
+  DepDate: string | null;
+  Country: string | null;
+  Location: string | null;
 }
 
 export default async function SearchProducts(payload: SearchProducts) {
@@ -17,5 +17,5 @@ export default async function SearchProducts(payload: SearchProducts) {
     throw new Error("Erro ao procurar viagens");
   }
 
-  return res.json(); // whatever structure the API returns
+  return res.json();
 }
