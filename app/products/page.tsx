@@ -40,9 +40,14 @@ export default function ResultsPage() {
         const country = params.get("country");
         const location = params.get("location");
 
+        const sortBy = params.get("sortBy");
+        const sortOrder = params.get("sortOrder");
+
         if (depDate) body.DepDate = depDate;
         if (country) body.Country = country;
         if (location) body.Location = location;
+        if (sortBy) body.SortBy = sortBy;
+        if (sortOrder) body.SortOrder = sortOrder;
 
         const data: PaginatedResponse = await SearchProducts(body);
 
