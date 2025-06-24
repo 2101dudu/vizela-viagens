@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useState } from "react";
 import _Label from "./_label";
 import CountryDropdown from "./_country_dropdown";
@@ -29,12 +30,24 @@ export default function _MainInputArea() {
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedLabel, setSelectedLabel] = useState(0);
   const [fromDate, setFromDate] = useState("");
-  const [error, setError] = useState<string | null>(null);
+
+  const isButtonDisabled = !fromDate && !selectedCountry && !selectedLocation;
+    
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Enter" && !isButtonDisabled) {
+        event.preventDefault(); // prevent form submission or other default
+        handleSearch();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [fromDate, selectedCountry, selectedLocation]);
 
 
-  if (!travelData) {
-    return <div>Loading...</div>;
-  }
 
   const inputConfigs: InputConfig[] = [
     {
@@ -45,7 +58,7 @@ export default function _MainInputArea() {
           component: CountryDropdown,
           props: () => ({
             className: "col-span-3",
-            countries: travelData.countries,
+            countries: travelData?.countries || [],
             selectedCountry,
             onSelect: setSelectedCountry,
           }),
@@ -54,7 +67,7 @@ export default function _MainInputArea() {
           component: LocationDropdown,
           props: () => ({
             className: "col-span-3",
-            locations: travelData.locations,
+            locations: travelData?.locations || [],
             selectedLocation,
             selectedCountry,
             onSelect: setSelectedLocation,
@@ -79,7 +92,7 @@ export default function _MainInputArea() {
           component: CountryDropdown,
           props: () => ({
             className: "col-span-full",
-            countries: travelData.countries,
+            countries: travelData?.countries || [],
             selectedCountry,
             onSelect: setSelectedCountry,
           }),
@@ -102,7 +115,7 @@ export default function _MainInputArea() {
           component: CountryDropdown,
           props: () => ({
             className: "col-span-4",
-            countries: travelData.countries,
+            countries: travelData?.countries || [],
             selectedCountry,
             onSelect: setSelectedCountry,
           }),
@@ -133,7 +146,7 @@ export default function _MainInputArea() {
           component: CountryDropdown,
           props: () => ({
             className: "col-span-full",
-            countries: travelData.countries,
+            countries: travelData?.countries || [],
             selectedCountry,
             onSelect: setSelectedCountry,
           }),
@@ -159,15 +172,9 @@ export default function _MainInputArea() {
   ];
 
   const handleSearch = () => {
-    if (!fromDate) {
-      setError("A data de partida é obrigatória.");
-      return;
-    }
-
     const query = new URLSearchParams();
 
-    query.set("from", fromDate);
-
+    if (fromDate) query.set("from", fromDate);
     if (selectedCountry) query.set("country", selectedCountry);
     if (selectedLocation) query.set("location", selectedLocation);
 
@@ -181,7 +188,6 @@ export default function _MainInputArea() {
   };
   
   const currentConfig = inputConfigs[selectedLabel];
-
 
   return (
     <div className="w-2/3 h-auto drop-shadow-my">
@@ -207,9 +213,8 @@ export default function _MainInputArea() {
               return <FieldComponent key={idx} {...fieldProps} />;
           })}
         </div>
-        <div className="mt-10 w-full flex justify-between">
-          <p><b className="text-red-500">*</b> Campos obrigatórios</p>
-          <_Button highlighted onClick={handleSearch}>
+        <div className="mt-10 w-full flex justify-end">
+          <_Button highlighted onClick={handleSearch} disabled={isButtonDisabled}>
             Pesquisar
           </_Button>
         </div>

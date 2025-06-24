@@ -7,6 +7,7 @@ interface ButtonProps {
   children?: React.ReactNode;
   href?: string;
   highlighted?: boolean;
+  disabled?: boolean;
   imageSrc?: string;
   imageAlt?: string;
   imageW?: number;
@@ -18,6 +19,7 @@ interface ButtonProps {
 export default function _Button({
   children,
   href,
+  disabled = false,
   highlighted = false,
   imageSrc,
   imageAlt = "Button image",
@@ -27,7 +29,11 @@ export default function _Button({
   onClick,
 }: ButtonProps) {
   const baseStyles =
-    "w-auto px-8 py-2 cursor-pointer hover:scale-105 transition-transform duration-100 ease-in-out flex items-center justify-center";
+    "w-auto px-8 py-2 hover:scale-105 transition-transform duration-100 ease-in-out flex items-center justify-center";
+
+  const disabledStyles = disabled
+    ? "opacity-50 cursor-not-allowed"
+    : "";
 
   const highlightStyles = highlighted
     ? "bg-highlight text-background rounded-xl"
@@ -57,7 +63,12 @@ export default function _Button({
       }
     };
     return (
-      <a href={href} onClick={handleAnchorClick} className={`${baseStyles} ${highlightStyles}`}>
+      <a
+        href={href}
+        onClick={handleAnchorClick}
+        className={`${baseStyles} ${highlightStyles} ${disabledStyles}`}
+        style={disabled ? { pointerEvents: "none" } : {}}
+      >
         {content}
       </a>
     );
@@ -66,7 +77,11 @@ export default function _Button({
   // If href is provided but not an anchor, render Next.js Link
   if (href) {
     return (
-      <Link href={href} className={`${baseStyles} ${highlightStyles}`}>
+      <Link
+        href={href}
+        className={`${baseStyles} ${highlightStyles} ${disabledStyles}`}
+        style={disabled ? { pointerEvents: "none" } : {}}
+      >
         {content}
       </Link>
     );
@@ -77,7 +92,8 @@ export default function _Button({
     <button
       type="button"
       onClick={onClick}
-      className={`${baseStyles} ${highlightStyles}`}
+      className={`${baseStyles} ${highlightStyles} ${disabledStyles}`}
+      disabled={disabled}
     >
       {content}
     </button>

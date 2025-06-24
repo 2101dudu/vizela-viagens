@@ -19,7 +19,6 @@ export default function DatePicker({
     <div className={`flex flex-col ${className}`}>
       <label className="mb-1 font-medium">
         {label}
-        <b className="text-red-500">*</b>
       </label>
       <input
         type="date"

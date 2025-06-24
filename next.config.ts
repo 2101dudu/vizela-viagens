@@ -2,7 +2,13 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['cdn.optigest.net'],  // add your external image domains here
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'cdn.optigest.net',
+        pathname: '**',
+      },
+    ],
   },
 };
 
