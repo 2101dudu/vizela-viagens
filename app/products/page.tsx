@@ -80,7 +80,7 @@ export default function ResultsPage() {
     if (prefetched) {
       setProducts((prev) => [...prev, ...prefetched.products]);
       setCursor((prev) => prev + prefetched.products.length);
-      setHasMore(prefetched.hasMore); // ← this is what matters
+      setHasMore(prefetched.hasMore);
       prefetchedRef.current = null;
     } else {
       setLoadingMore(true);
@@ -88,7 +88,7 @@ export default function ResultsPage() {
         const moreProductsData = await FetchMoreProducts(token, cursor);
         setProducts((prev) => [...prev, ...moreProductsData.products]);
         setCursor((prev) => prev + moreProductsData.products.length);
-        setHasMore(moreProductsData.hasMore); // ← and here too
+        setHasMore(moreProductsData.hasMore);
       } catch (err) {
         console.error("Error fetching more products:", err);
       } finally {
