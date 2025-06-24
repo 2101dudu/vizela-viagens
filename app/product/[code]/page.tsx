@@ -2,23 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-
-interface Product {
-  Code: string;
-  Name: string;
-  Localization: string;
-  Country: string;
-  Zone: string;
-  MinPaxReserve: string;
-  MaxPaxReserve: string;
-  // Add other fields you want to show
-}
+import BookingForm, { ApiData } from "./_booking_form";
 
 export default function ProductPage() {
   const params = useParams();
   const code = params.code; // code from URL
 
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState<ApiData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,14 +40,7 @@ export default function ProductPage() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-4">{product.Name}</h1>
-      <p><strong>Code:</strong> {product.Code}</p>
-      <p><strong>Localization:</strong> {product.Localization}</p>
-      <p><strong>Country:</strong> {product.Country}</p>
-      <p><strong>Zone:</strong> {product.Zone}</p>
-      <p><strong>Min Pax Reserve:</strong> {product.MinPaxReserve}</p>
-      <p><strong>Max Pax Reserve:</strong> {product.MaxPaxReserve}</p>
-      {/* Add more fields here if needed */}
+      <BookingForm data={product} />
     </div>
   );
 }

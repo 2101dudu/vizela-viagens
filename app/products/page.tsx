@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import _Product from "./_product";
 import LoadingDots from "@/app/components/animations/loading_dots";
@@ -26,8 +26,10 @@ export default function ResultsPage() {
   const [cursor, setCursor] = useState<number>(0);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
+  const prefetchedRef = useRef<{ products: Product[]; hasMore: boolean } | null>(null);
 
   const [error, setError] = useState<string | null>(null);
+
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -48,6 +50,7 @@ export default function ResultsPage() {
         setToken(data.token);
         setCursor(data.products?.length);
         setHasMore(data.hasMore ?? true);
+        prefetchedRef.current = null;
       } catch (err) {
         setError("Erro ao buscar resultados.");
         console.error(err);
@@ -59,21 +62,41 @@ export default function ResultsPage() {
     fetchResults();
   }, [params]);
 
+  const prefetchMore = async () => {
+    if (!token || !hasMore || loadingMore || prefetchedRef.current) return;
+    try {
+      const moreProducts = await FetchMoreProducts(token, cursor);
+      prefetchedRef.current = moreProducts; // cache the prefetched results
+    } catch (err) {
+      console.error("Erro ao pré-carregar mais produtos:", err);
+    }
+  };
+
   const handleSeeMore = async () => {
     if (!token || !hasMore) return;
 
-    setLoadingMore(true);
-    try {
-      const moreProducts = await FetchMoreProducts(token, cursor);
-      setProducts((prev) => [...prev, ...moreProducts]);
-      setCursor((prev) => prev + moreProducts.length);
-      setHasMore(moreProducts.hasMore);
-    } catch (err) {
-      console.error("Erro ao carregar mais produtos:", err);
-    } finally {
-      setLoadingMore(false);
+    const prefetched = prefetchedRef.current;
+
+    if (prefetched) {
+      setProducts((prev) => [...prev, ...prefetched.products]);
+      setCursor((prev) => prev + prefetched.products.length);
+      setHasMore(prefetched.hasMore); // ← this is what matters
+      prefetchedRef.current = null;
+    } else {
+      setLoadingMore(true);
+      try {
+        const moreProductsData = await FetchMoreProducts(token, cursor);
+        setProducts((prev) => [...prev, ...moreProductsData.products]);
+        setCursor((prev) => prev + moreProductsData.products.length);
+        setHasMore(moreProductsData.hasMore); // ← and here too
+      } catch (err) {
+        console.error("Error fetching more products:", err);
+      } finally {
+        setLoadingMore(false);
+      }
     }
   };
+
 
 
   return (
@@ -100,6 +123,7 @@ export default function ResultsPage() {
           <div className="w-full text-center mt-6">
             <button
               onClick={handleSeeMore}
+              onMouseEnter={prefetchMore}
               disabled={loadingMore}
               className="px-6 py-2 rounded bg-foreground text-background hover:opacity-80 transition disabled:opacity-50"
             >

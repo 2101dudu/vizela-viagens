@@ -11,5 +11,8 @@ export default async function FetchMoreProducts(token: string, cursor: number, l
   if (!res.ok) throw new Error("Failed to fetch more products");
 
   const data = await res.json();
-  return data.products;
+  return {
+    products: data.products,
+    hasMore: data.hasMore,
+  };
 }

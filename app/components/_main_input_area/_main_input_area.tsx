@@ -76,7 +76,7 @@ export default function _MainInputArea() {
         {
           component: DatePicker,
           props: {
-            label: "Data de partida",
+            label: "Data de Partida",
             className: "col-span-3",
             value: fromDate,
             onChange: setFromDate
@@ -99,11 +99,11 @@ export default function _MainInputArea() {
         },
         {
           component: DatePicker,
-          props: { label: "Data de partida", className: "col-span-1" },
+          props: { label: "Data de Partida", className: "col-span-1" },
         },
         {
           component: DatePicker,
-          props: { label: "Data de chegada", className: "col-span-1" },
+          props: { label: "Data de Chegada", className: "col-span-1" },
         },
       ],
     },
@@ -122,19 +122,19 @@ export default function _MainInputArea() {
         },
         {
           component: NumberInput,
-          props: { label: "Número de adultos", className: "col-span-2" },
+          props: { label: "Número de Adultos", className: "col-span-2" },
         },
         {
           component: NumberInput,
-          props: { label: "Número de crianças", className: "col-span-2" },
+          props: { label: "Número de Crianças", className: "col-span-2" },
         },
         {
           component: DatePicker,
-          props: { label: "Data de partida", className: "col-span-4" },
+          props: { label: "Data de Partida", className: "col-span-4" },
         },
         {
           component: DatePicker,
-          props: { label: "Data de chegada", className: "col-span-4" },
+          props: { label: "Data de Chegada", className: "col-span-4" },
         },
       ],
     },
@@ -153,19 +153,19 @@ export default function _MainInputArea() {
         },
         {
           component: NumberInput,
-          props: { label: "Número de adultos", className: "col-span-1" },
+          props: { label: "Número de Adultos", className: "col-span-1" },
         },
         {
           component: NumberInput,
-          props: { label: "Número de crianças", className: "col-span-1" },
+          props: { label: "Número de Crianças", className: "col-span-1" },
         },
         {
           component: DatePicker,
-          props: { label: "Data de partida", className: "col-span-full" },
+          props: { label: "Data de Partida", className: "col-span-full" },
         },
         {
           component: DatePicker,
-          props: { label: "Data de chegada", className: "col-span-full" },
+          props: { label: "Data de Chegada", className: "col-span-full" },
         },
       ],
     },
