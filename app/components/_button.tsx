@@ -32,7 +32,7 @@ export default function _Button({
     "w-auto px-8 py-2 hover:scale-105 transition-transform duration-100 ease-in-out flex items-center justify-center";
 
   const disabledStyles = disabled
-    ? "opacity-50 cursor-not-allowed hover:scale-100"
+    ? "opacity-50 cursor-not-allowed"
     : "";
 
   const highlightStyles = highlighted

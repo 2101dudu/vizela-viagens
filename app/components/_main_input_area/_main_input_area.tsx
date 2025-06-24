@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useState } from "react";
 import _Label from "./_label";
 import CountryDropdown from "./_country_dropdown";
@@ -30,10 +31,23 @@ export default function _MainInputArea() {
   const [selectedLabel, setSelectedLabel] = useState(0);
   const [fromDate, setFromDate] = useState("");
 
+  const isButtonDisabled = !fromDate && !selectedCountry && !selectedLocation;
+    
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Enter" && !isButtonDisabled) {
+        event.preventDefault(); // prevent form submission or other default
+        handleSearch();
+      }
+    };
 
-  if (!travelData) {
-    return <div>Loading...</div>;
-  }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [fromDate, selectedCountry, selectedLocation]);
+
+
 
   const inputConfigs: InputConfig[] = [
     {
@@ -44,7 +58,7 @@ export default function _MainInputArea() {
           component: CountryDropdown,
           props: () => ({
             className: "col-span-3",
-            countries: travelData.countries,
+            countries: travelData?.countries || [],
             selectedCountry,
             onSelect: setSelectedCountry,
           }),
@@ -53,7 +67,7 @@ export default function _MainInputArea() {
           component: LocationDropdown,
           props: () => ({
             className: "col-span-3",
-            locations: travelData.locations,
+            locations: travelData?.locations || [],
             selectedLocation,
             selectedCountry,
             onSelect: setSelectedLocation,
@@ -78,7 +92,7 @@ export default function _MainInputArea() {
           component: CountryDropdown,
           props: () => ({
             className: "col-span-full",
-            countries: travelData.countries,
+            countries: travelData?.countries || [],
             selectedCountry,
             onSelect: setSelectedCountry,
           }),
@@ -101,7 +115,7 @@ export default function _MainInputArea() {
           component: CountryDropdown,
           props: () => ({
             className: "col-span-4",
-            countries: travelData.countries,
+            countries: travelData?.countries || [],
             selectedCountry,
             onSelect: setSelectedCountry,
           }),
@@ -132,7 +146,7 @@ export default function _MainInputArea() {
           component: CountryDropdown,
           props: () => ({
             className: "col-span-full",
-            countries: travelData.countries,
+            countries: travelData?.countries || [],
             selectedCountry,
             onSelect: setSelectedCountry,
           }),
@@ -175,7 +189,6 @@ export default function _MainInputArea() {
   
   const currentConfig = inputConfigs[selectedLabel];
 
-
   return (
     <div className="w-2/3 h-auto drop-shadow-my">
       <div className="flex gap-2">
@@ -201,7 +214,7 @@ export default function _MainInputArea() {
           })}
         </div>
         <div className="mt-10 w-full flex justify-end">
-          <_Button highlighted onClick={handleSearch} disabled={!fromDate && !selectedCountry && !selectedLocation}>
+          <_Button highlighted onClick={handleSearch} disabled={isButtonDisabled}>
             Pesquisar
           </_Button>
         </div>
