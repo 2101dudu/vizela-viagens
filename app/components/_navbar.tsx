@@ -6,7 +6,7 @@ export default function NavBar() {
       <div className="bg-background w-full fixed h-20 z-50">
         <div className="flex items-center justify-between w-2/3 mx-auto h-full">
           <_Button
-            href="#home"
+            href="/"
             imageSrc="/_review/placeholder.svg"
             imageAlt="Next.js logo"
             imageW={50}

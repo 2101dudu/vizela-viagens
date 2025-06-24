@@ -42,13 +42,11 @@ export default function ResultsPage() {
         if (country) body.Country = country;
         if (location) body.Location = location;
 
-        console.log("Fetching products with body:", body);
-
         const data: PaginatedResponse = await SearchProducts(body);
 
         setProducts(data.products);
         setToken(data.token);
-        setCursor(data.products.length);
+        setCursor(data.products?.length);
         setHasMore(data.hasMore ?? true);
       } catch (err) {
         setError("Erro ao buscar resultados.");
@@ -85,7 +83,7 @@ export default function ResultsPage() {
 
         {loading ? (
           <LoadingDots/>
-        ) : products?.length === 0 ? (
+        ) : products === null ? (
           <div className="text-center mt-20 text-2xl font-bold">Nenhum resultado encontrado.</div>
         ) : <h1 className="text-2xl font-bold mb-4">Viagens</h1>}
         <div className="w-full flex flex-wrap gap-2 justify-between">
