@@ -126,7 +126,7 @@ export default function BookingForm({ data }: BookingFormProps) {
   };
 
   return (
-    <form className="flex flex-col space-y-4 p-4 max-w-md mx-auto">
+    <form className="flex flex-col space-y-4 px-4 max-w-md">
         <h1 className="text-2xl font-bold mb-4">Reservar {data.Name}</h1>
       {/* Date dropdown */}
         <div className="flex flex-col">
@@ -136,10 +136,11 @@ export default function BookingForm({ data }: BookingFormProps) {
                 selected={selectedDate ? parseISO(selectedDate) : dates.pop() ? parseISO(dates[0]) : null}
                 onChange={(date: Date | null) => {
                     if (date) {
-                    const iso = date.toISOString().split("T")[0];
-                    if (allowedDatesSet.has(iso)) {
+                      const { format } = require("date-fns");
+                      const iso = format(date, "yyyy-MM-dd");
+                      if (allowedDatesSet.has(iso)) {
                         setSelectedDate(iso);
-                    }
+                      }
                     }
                 }}
                 includeDates={dates.map((d) => parseISO(d))}
