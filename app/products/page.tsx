@@ -30,6 +30,10 @@ export default function ResultsPage() {
 
   const [error, setError] = useState<string | null>(null);
 
+  // Dropdown state
+  const [sortBy, setSortBy] = useState<string>("price");
+  const [sortOrder, setSortOrder] = useState<string>("asc");
+
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -40,14 +44,9 @@ export default function ResultsPage() {
         const country = params.get("country");
         const location = params.get("location");
 
-        const sortBy = params.get("sortBy");
-        const sortOrder = params.get("sortOrder");
-
         if (depDate) body.DepDate = depDate;
         if (country) body.Country = country;
         if (location) body.Location = location;
-        if (sortBy) body.SortBy = sortBy;
-        if (sortOrder) body.SortOrder = sortOrder;
 
         const data: PaginatedResponse = await SearchProducts(body);
 
@@ -102,7 +101,75 @@ export default function ResultsPage() {
     }
   };
 
+  // Prefetched sorted data
+  const prefetchedSortRef = useRef<PaginatedResponse | null>(null);
+  const [sortPrefetching, setSortPrefetching] = useState(false);
 
+  // Prefetch sorted data on hover
+  const handleSortPrefetch = async () => {
+    if (sortPrefetching || prefetchedSortRef.current) return;
+    try {
+      const body: any = {};
+      const depDate = params.get("from");
+      const country = params.get("country");
+      const location = params.get("location");
+      if (depDate) body.DepDate = depDate;
+      if (country) body.Country = country;
+      if (location) body.Location = location;
+      body.SortBy = sortBy;
+      body.SortOrder = sortOrder;
+      const data: PaginatedResponse = await SearchProducts(body);
+      prefetchedSortRef.current = data;
+    } catch (err) {
+      console.log("Erro ao pré-carregar dados ordenados:", err);
+    } 
+  };
+
+  // Show prefetched data on click, fallback to API call if not prefetched
+  const handleSortShow = async () => {
+    const prefetched = prefetchedSortRef.current;
+
+    if (prefetched) {
+      setProducts(prefetched.products);
+      setToken(prefetched.token);
+      setCursor(prefetched.products?.length);
+      setHasMore(prefetched.hasMore ?? true);
+      prefetchedSortRef.current = null;
+    } else {
+      setSortPrefetching(true);
+      try {
+        const body: any = {};
+        const depDate = params.get("from");
+        const country = params.get("country");
+        const location = params.get("location");
+        if (depDate) body.DepDate = depDate;
+        if (country) body.Country = country;
+        if (location) body.Location = location;
+        body.SortBy = sortBy;
+        body.SortOrder = sortOrder;
+        const data: PaginatedResponse = await SearchProducts(body);
+        setProducts(data.products);
+        setToken(data.token);
+        setCursor(data.products?.length);
+        setHasMore(data.hasMore ?? true);
+      } catch (err) {
+        setError("Erro ao buscar resultados.");
+        console.error(err);
+      } finally {
+        setSortPrefetching(false);
+      }
+    }
+  };
+
+  // Invalidate prefetched sort data when sort/filter changes
+  useEffect(() => {
+    prefetchedSortRef.current = null;
+  }, [sortBy, sortOrder, params]);
+
+  // Invalidate prefetched 'see more' data when filters change
+  useEffect(() => {
+    prefetchedRef.current = null;
+  }, [params]);
 
   return (
     <div className="w-full bg-background text-foreground flex flex-col items-center">
@@ -115,13 +182,37 @@ export default function ResultsPage() {
           <div className="text-center mt-20 text-2xl font-bold">Nenhum resultado encontrado.</div>
         ) : <h1 className="text-2xl font-bold mb-4">Viagens</h1>}
         <div className="w-full flex flex-wrap gap-2 justify-between">
-          {products?.map((product, i) => (
-            <div key={i} className="w-[30%] min-w-[200px]">
-              <_FadeIn key={i} delay={(i % 2) * 100}>
-                <_Product product={product} />
-              </_FadeIn>
-            </div>
-          ))}
+          {/* Sort/filter controls */}
+          <div className="flex flex-col gap-2 w-1/5 min-w-[180px] mr-4">
+            <label className="font-semibold">Ordenar por</label>
+            <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="border rounded p-1">
+              <option value="price">Preço</option>
+              <option value="name">Nome</option>
+            </select>
+            <label className="font-semibold">Ordem</label>
+            <select value={sortOrder} onChange={e => setSortOrder(e.target.value)} className="border rounded p-1">
+              <option value="asc">Ascendente</option>
+              <option value="desc">Descendente</option>
+            </select>
+            <button
+              onMouseEnter={handleSortPrefetch}
+              onClick={handleSortShow}
+              disabled={sortPrefetching}
+              className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition disabled:opacity-50"
+            >
+              {sortPrefetching ? "A carregar..." : "Ordenar"}
+            </button>
+          </div>
+          {/* Product listings */}
+          <div className="flex-1 flex flex-wrap gap-2 justify-between">
+            {products?.map((product, i) => (
+              <div key={i} className="w-[30%] min-w-[200px]">
+                <_FadeIn key={i} delay={(i % 2) * 100}>
+                  <_Product product={product} />
+                </_FadeIn>
+              </div>
+            ))}
+          </div>
         </div>
 
         {token && hasMore && (
