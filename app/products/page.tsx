@@ -34,6 +34,11 @@ export default function ResultsPage() {
   const [sortBy, setSortBy] = useState<string>("price");
   const [sortOrder, setSortOrder] = useState<string>("asc");
 
+  // New filter states
+  const [priceFrom, setPriceFrom] = useState<string>("");
+  const [priceTo, setPriceTo] = useState<string>("");
+  const [numDays, setNumDays] = useState<string>("");
+
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -118,6 +123,9 @@ export default function ResultsPage() {
       if (location) body.Location = location;
       body.SortBy = sortBy;
       body.SortOrder = sortOrder;
+      if (priceFrom) body.PriceFrom = priceFrom;
+      if (priceTo) body.PriceTo = priceTo;
+      if (numDays) body.NumDays = numDays;
       const data: PaginatedResponse = await SearchProducts(body);
       prefetchedSortRef.current = data;
     } catch (err) {
@@ -164,7 +172,7 @@ export default function ResultsPage() {
   // Invalidate prefetched sort data when sort/filter changes
   useEffect(() => {
     prefetchedSortRef.current = null;
-  }, [sortBy, sortOrder, params]);
+  }, [sortBy, sortOrder, priceFrom, priceTo, numDays, params]);
 
   // Invalidate prefetched 'see more' data when filters change
   useEffect(() => {
@@ -194,6 +202,43 @@ export default function ResultsPage() {
               <option value="asc">Ascendente</option>
               <option value="desc">Descendente</option>
             </select>
+            {/* New filter inputs */}
+            <label className="font-semibold mt-2">Preço De</label>
+            <input
+              type="number"
+              value={priceFrom}
+              onChange={e => {
+              const val = Number(e.target.value);
+              setPriceFrom(val < 0 ? "0" : e.target.value);
+              }}
+              className="border rounded p-1"
+              placeholder="Mínimo"
+              min="0"
+            />
+            <label className="font-semibold">Preço Até</label>
+            <input
+              type="number"
+              value={priceTo}
+              onChange={e => {
+              const val = Number(e.target.value);
+              setPriceTo(val < 0 ? "0" : e.target.value);
+              }}
+              className="border rounded p-1"
+              placeholder="Máximo"
+              min="0"
+            />
+            <label className="font-semibold">Nº de Dias</label>
+            <input
+              type="number"
+              value={numDays}
+              onChange={e => {
+              const val = Number(e.target.value);
+              setNumDays(val < 1 ? "1" : e.target.value);
+              }}
+              className="border rounded p-1"
+              placeholder="Ex: 7"
+              min="1"
+            />
             <button
               onMouseEnter={handleSortPrefetch}
               onClick={handleSortShow}
