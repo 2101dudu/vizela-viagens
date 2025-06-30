@@ -112,7 +112,7 @@ export default function ProductPage() {
                       </span>
                     </button>
                     <div
-                      className={`transition-all duration-400 ease-in-out overflow-scroll ${isOpen ? 'max-h-96 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-2'}`}
+                      className={`transition-all duration-400 ease-in-out overflow-y-scroll ${isOpen ? 'max-h-96 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-2'}`}
                       style={{
                         willChange: 'max-height, opacity, transform',
                       }}

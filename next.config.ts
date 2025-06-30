@@ -28,6 +28,11 @@ const nextConfig: NextConfig = {
         hostname: 'i.travelapi.com',
         pathname: '**',
       },
+      {
+        protocol: 'https',
+        hostname: 'contents.abreuonline.com',
+        pathname: '**',
+      },
     ],
   },
 };

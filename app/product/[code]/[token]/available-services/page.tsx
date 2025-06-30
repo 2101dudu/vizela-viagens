@@ -183,34 +183,53 @@ export default function AvailableServicesPage() {
   const flightOptions = productData?.data?.FlightMainGroup?.item?.[0]?.FlightOptionsSuperBB?.item || [];
   const hotels = productData?.data?.Itinerary?.item?.find(item => item.Name === "Alojamento")?.HotelOption?.item || [];
 
-  // Initialize selected flights for each option with first available flight
+  // Initialize selected flights - only first option has flights selected by default
   React.useEffect(() => {
     if (flightOptions.length > 0 && Object.keys(selectedFlights).length === 0) {
       const initialSelections: {[optionCode: string]: {[segmentCode: string]: string}} = {};
       
-      flightOptions.forEach(option => {
+      flightOptions.forEach((option, optionIndex) => {
         initialSelections[option.OptionCode] = {};
         option.FlightSegments.item.forEach(segment => {
           if (segment.Flights.item.length > 0) {
-            initialSelections[option.OptionCode][segment.SegmentCode] = "0";
+            // Only select flights for the first option, and only if segments have 1 or 2 flights
+            if (optionIndex === 0) {
+              if (segment.Flights.item.length === 1) {
+                // Auto-select if only one option
+                initialSelections[option.OptionCode][segment.SegmentCode] = segment.Flights.item[0].FlightGroupCode;
+              } else {
+                // For multiple options, don't auto-select
+                initialSelections[option.OptionCode][segment.SegmentCode] = "";
+              }
+            } else {
+              // For other options, don't pre-select anything
+              initialSelections[option.OptionCode][segment.SegmentCode] = "";
+            }
           }
         });
       });
       
       setSelectedFlights(initialSelections);
       
-      // Set default selected flight
-      if (!bookingState.selectedFlight) {
-        setBookingState(prev => ({
-          ...prev,
-          selectedFlight: {
-            optionCode: "0",
-            flightSelections: initialSelections["0"] || {}
-          }
-        }));
+      // Check if first option has all flights selected (meaning all segments have only 1 flight option)
+      const firstOptionSelections = initialSelections["0"] || {};
+      const hasAllFlightsSelected = Object.values(firstOptionSelections).every(selection => selection !== "");
+      
+      if (hasAllFlightsSelected && flightOptions[0]) {
+        const firstOption = flightOptions[0];
+        const numSegments = firstOption.FlightSegments.item.length;
+        if (numSegments === 2) { // Outgoing and incoming
+          setBookingState(prev => ({
+            ...prev,
+            selectedFlight: {
+              optionCode: "0",
+              flightSelections: firstOptionSelections
+            }
+          }));
+        }
       }
     }
-  }, [flightOptions, selectedFlights, bookingState.selectedFlight]);
+  }, [flightOptions, selectedFlights]);
 
   if (loading && !isDone) {
     return (
@@ -250,35 +269,139 @@ export default function AvailableServicesPage() {
     );
   }
 
-  const handleFlightOptionChange = (optionCode: string) => {
-    setBookingState(prev => ({
-      ...prev,
-      selectedFlight: {
-        optionCode,
-        flightSelections: selectedFlights[optionCode] || {}
-      }
-    }));
-  };
+  // Check for empty flight options or hotels
+  if (flightOptions.length === 0 || hotels.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center text-red-600 max-w-md">
+          <div className="mb-4">
+            <svg className="w-16 h-16 mx-auto text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold mb-4 text-gray-800">Serviços Indisponíveis</h2>
+          
+          {flightOptions.length === 0 && hotels.length === 0 ? (
+            <div className="mb-4">
+              <p className="mb-2 text-gray-700">
+                <strong>Não existem voos nem alojamentos disponíveis</strong> para as suas datas e especificações.
+              </p>
+              <p className="text-sm text-gray-600 mb-4">
+                Isto pode acontecer devido a limitações de disponibilidade, restrições sazonais, ou as datas selecionadas podem estar esgotadas.
+              </p>
+            </div>
+          ) : flightOptions.length === 0 ? (
+            <div className="mb-4">
+              <p className="mb-2 text-gray-700">
+                <strong>Não existem voos disponíveis</strong> para as suas datas e destino selecionados.
+              </p>
+              <p className="text-sm text-gray-600 mb-4">
+                Os voos podem estar esgotados para estas datas ou pode não haver rotas disponíveis para o destino escolhido.
+              </p>
+            </div>
+          ) : (
+            <div className="mb-4">
+              <p className="mb-2 text-gray-700">
+                <strong>Não existem alojamentos disponíveis</strong> para as suas datas e destino selecionados.
+              </p>
+              <p className="text-sm text-gray-600 mb-4">
+                Os hotéis podem estar esgotados para estas datas ou pode não haver acomodações disponíveis na região escolhida.
+              </p>
+            </div>
+          )}
+          
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
+            <h3 className="font-semibold text-blue-800 mb-2">💡 Sugestões para resolver:</h3>
+            <ul className="text-sm text-blue-700 space-y-1">
+              <li>• Tente datas diferentes (mais flexíveis)</li>
+              <li>• Considere destinos alternativos próximos</li>
+              <li>• Verifique se as suas preferências não são muito restritivas</li>
+              <li>• Contacte-nos diretamente para mais opções</li>
+            </ul>
+          </div>
+          
+          <div className="space-y-3">
+            <button
+              onClick={() => router.push(`/product/${code}`)}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors"
+            >
+              ← Voltar ao Produto
+            </button>
+            <div className="text-xs text-gray-500">
+              Pode alterar as suas preferências e tentar novamente
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleFlightSelection = (optionCode: string, segmentCode: string, flightGroupCode: string) => {
-    setSelectedFlights(prev => ({
-      ...prev,
-      [optionCode]: {
-        ...prev[optionCode],
-        [segmentCode]: flightGroupCode
-      }
-    }));
+    // Check if we're selecting from the same entry as currently selected flights
+    const currentlySelectedEntry = Object.keys(selectedFlights).find(entryCode => 
+      Object.values(selectedFlights[entryCode] || {}).some(selection => selection !== "")
+    );
     
-    if (bookingState.selectedFlight?.optionCode === optionCode) {
+    let newSelections: {[optionCode: string]: {[segmentCode: string]: string}};
+    
+    if (currentlySelectedEntry && currentlySelectedEntry !== optionCode) {
+      // Selecting from a different entry - clear all and start fresh
+      newSelections = {};
+      flightOptions.forEach(option => {
+        newSelections[option.OptionCode] = {};
+        option.FlightSegments.item.forEach(segment => {
+          newSelections[option.OptionCode][segment.SegmentCode] = "";
+        });
+      });
+    } else {
+      // Selecting from the same entry or no entry selected yet - preserve existing selections
+      newSelections = { ...selectedFlights };
+      // Ensure all entries are initialized
+      flightOptions.forEach(option => {
+        if (!newSelections[option.OptionCode]) {
+          newSelections[option.OptionCode] = {};
+          option.FlightSegments.item.forEach(segment => {
+            newSelections[option.OptionCode][segment.SegmentCode] = "";
+          });
+        }
+      });
+    }
+
+    // Find the selected option
+    const selectedOption = flightOptions.find(opt => opt.OptionCode === optionCode);
+    if (!selectedOption) return;
+
+    // Set the selected flight for this segment
+    newSelections[optionCode][segmentCode] = flightGroupCode;
+
+    // Auto-select the other flight if this entry has exactly 2 segments (outgoing + incoming)
+    // and the other segment has only one flight option
+    if (selectedOption.FlightSegments.item.length === 2) {
+      const otherSegment = selectedOption.FlightSegments.item.find(seg => seg.SegmentCode !== segmentCode);
+      if (otherSegment && otherSegment.Flights.item.length === 1) {
+        // Auto-select the other flight if it has only one option
+        newSelections[optionCode][otherSegment.SegmentCode] = otherSegment.Flights.item[0].FlightGroupCode;
+      }
+    }
+
+    setSelectedFlights(newSelections);
+    
+    // Update booking state - check if we have 2 flights selected for this option
+    const entrySelections = newSelections[optionCode];
+    const selectedCount = Object.values(entrySelections).filter(selection => selection !== "").length;
+    
+    if (selectedCount === 2) {
       setBookingState(prev => ({
         ...prev,
         selectedFlight: {
-          ...prev.selectedFlight!,
-          flightSelections: {
-            ...prev.selectedFlight!.flightSelections,
-            [segmentCode]: flightGroupCode
-          }
+          optionCode,
+          flightSelections: entrySelections
         }
+      }));
+    } else {
+      setBookingState(prev => ({
+        ...prev,
+        selectedFlight: null
       }));
     }
   };
@@ -295,7 +418,7 @@ export default function AvailableServicesPage() {
   };
 
   const getSelectedFlightForSegment = (optionCode: string, segmentCode: string) => {
-    return selectedFlights[optionCode]?.[segmentCode] || "0";
+    return selectedFlights[optionCode]?.[segmentCode] || "";
   };
 
   const canAccessTab = (tab: 'flights' | 'hotels' | 'review') => {
@@ -473,16 +596,20 @@ export default function AvailableServicesPage() {
         {/* Tab Content */}
         <div className="bg-white rounded-lg shadow-lg relative">
           {/* Sticky Navigation Buttons */}
-          <div className="fixed right-4 top-1/2 transform -translate-y-1/2 z-10 flex flex-col space-y-2">
-            {/* Flight Tab Navigation */}
-            {bookingState.currentTab === 'flights' && bookingState.selectedFlight && (
-              <button
-                onClick={() => switchTab('hotels')}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-lg"
-              >
-                Seguinte →
-              </button>
-            )}
+          <div className="fixed right-4 top-1/2 transform -translate-y-1/2 z-10 flex flex-col space-y-2">          {/* Flight Tab Navigation */}
+          {bookingState.currentTab === 'flights' && (
+            <button
+              onClick={() => switchTab('hotels')}
+              disabled={!bookingState.selectedFlight}
+              className={`font-medium py-2 px-4 rounded-lg transition-colors shadow-lg ${
+                bookingState.selectedFlight
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              Seguinte →
+            </button>
+          )}
             
             {/* Hotel Tab Navigation */}
             {bookingState.currentTab === 'hotels' && (
@@ -527,32 +654,26 @@ export default function AvailableServicesPage() {
           </div>
           {/* Flight Selection Tab */}
           {bookingState.currentTab === 'flights' && (
-            <div className="p-6 pr-20"> {/* Added right padding for sticky buttons */}
+            <div className="p-6">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">Escolha a Sua Opção de Voo</h2>
               
               <div className="space-y-6 mb-6">
-                {flightOptions.map((option) => (
-                  <div 
-                    key={option.OptionCode} 
-                    className={`border-2 rounded-lg p-6 transition-all cursor-pointer ${
-                      bookingState.selectedFlight?.optionCode === option.OptionCode 
-                        ? 'border-blue-500 bg-blue-50' 
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                    onClick={() => handleFlightOptionChange(option.OptionCode)}
-                  >
+                {flightOptions.map((option) => {
+                  // Check if this option has any flights selected
+                  const hasSelectedFlights = Object.values(selectedFlights[option.OptionCode] || {}).some(selection => selection !== "");
+                  
+                  return (
+                    <div 
+                      key={option.OptionCode} 
+                      className={`border-2 rounded-lg p-6 transition-all ${
+                        hasSelectedFlights
+                          ? 'border-blue-500 bg-blue-50' 
+                          : 'border-gray-200'
+                      }`}
+                    >
                     {/* Option Header */}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center">
-                        <div className={`w-4 h-4 rounded-full border-2 mr-3 ${
-                          bookingState.selectedFlight?.optionCode === option.OptionCode 
-                            ? 'border-blue-500 bg-blue-500' 
-                            : 'border-gray-300'
-                        }`}>
-                          {bookingState.selectedFlight?.optionCode === option.OptionCode && (
-                            <div className="w-2 h-2 bg-white rounded-full m-0.5"></div>
-                          )}
-                        </div>
                         <h3 className="text-lg font-semibold text-gray-800">
                           Pacote de Voo {parseInt(option.OptionCode) + 1}
                         </h3>
@@ -596,12 +717,12 @@ export default function AvailableServicesPage() {
 
                           {/* Route Overview */}
                           <div className="bg-gray-50 rounded-lg p-3 mb-3">
-                            <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center justify-between text-sm relative">
                               <div>
                                 <span className="font-medium">{segment.FromIATADesc}</span>
                                 <span className="text-gray-500 ml-1">({segment.FromIATA})</span>
                               </div>
-                              <div className="text-center text-gray-400">
+                              <div className="text-gray-400 absolute left-1/2 transform -translate-x-1/2">
                                 <svg className="w-4 h-4 mx-auto" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M10.293 15.707a1 1 0 010-1.414L14.586 10l-4.293-4.293a1 1 0 111.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clipRule="evenodd" />
                                 </svg>
@@ -618,35 +739,41 @@ export default function AvailableServicesPage() {
 
                           {/* Flight Options for this Segment */}
                           {segment.Flights.item.length > 1 && (
-                            <div className="text-sm text-orange-600 font-medium mb-2">
-                              Múltiplas opções de voo disponíveis - escolha uma:
+                            <div className="text-sm text-orange-600 font-medium mb-2 flex items-center">
+                              <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                              </svg>
+                              Múltiplas opções disponíveis - deve escolher uma opção
                             </div>
                           )}
                           
                           <div className="space-y-2">
-                            {segment.Flights.item.map((flightGroup) => (
-                              <div 
-                                key={flightGroup.FlightGroupCode}
-                                className={`border rounded-md p-3 cursor-pointer transition-colors ${
-                                  getSelectedFlightForSegment(option.OptionCode, segment.SegmentCode) === flightGroup.FlightGroupCode
-                                    ? 'border-blue-500 bg-blue-50'
-                                    : 'border-gray-200 hover:border-gray-300'
-                                }`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleFlightSelection(option.OptionCode, segment.SegmentCode, flightGroup.FlightGroupCode);
-                                }}
-                              >
-                                <div className="flex items-center mb-2">
-                                  <div className={`w-3 h-3 rounded-full border mr-2 ${
-                                    getSelectedFlightForSegment(option.OptionCode, segment.SegmentCode) === flightGroup.FlightGroupCode
-                                      ? 'border-blue-500 bg-blue-500'
-                                      : 'border-gray-300'
-                                  }`}>
-                                    {getSelectedFlightForSegment(option.OptionCode, segment.SegmentCode) === flightGroup.FlightGroupCode && (
-                                      <div className="w-1.5 h-1.5 bg-white rounded-full m-0.5"></div>
-                                    )}
-                                  </div>
+                            {segment.Flights.item.map((flightGroup) => {
+                              const isSelected = getSelectedFlightForSegment(option.OptionCode, segment.SegmentCode) === flightGroup.FlightGroupCode;
+                              
+                              return (
+                                <div 
+                                  key={flightGroup.FlightGroupCode}
+                                  className={`border rounded-md p-3 cursor-pointer transition-colors ${
+                                    isSelected
+                                      ? 'border-blue-500 bg-blue-50'
+                                      : 'border-gray-200 hover:border-gray-300'
+                                  }`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleFlightSelection(option.OptionCode, segment.SegmentCode, flightGroup.FlightGroupCode);
+                                  }}
+                                >
+                                  <div className="flex items-center mb-2">
+                                    <div className={`w-3 h-3 rounded-full border mr-2 ${
+                                      isSelected
+                                        ? 'border-blue-500 bg-blue-500'
+                                        : 'border-gray-300'
+                                    }`}>
+                                      {isSelected && (
+                                        <div className="w-1.5 h-1.5 bg-white rounded-full m-0.5"></div>
+                                      )}
+                                    </div>
                                   {flightGroup.NumStopOvers !== "0" && (
                                     <span className="text-xs text-orange-600 font-medium">
                                       {flightGroup.NumStopOvers} escala(s)
@@ -699,20 +826,22 @@ export default function AvailableServicesPage() {
                                   ))}
                                 </div>
                               </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
 
           {/* Hotel Selection Tab */}
           {bookingState.currentTab === 'hotels' && (
-            <div className="p-6 pr-20"> {/* Added right padding for sticky buttons */}
+            <div className="p-6">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">Escolha o Seu Alojamento</h2>
               
               <div className="space-y-6 mb-6">
@@ -850,7 +979,7 @@ export default function AvailableServicesPage() {
 
           {/* Review Tab */}
           {bookingState.currentTab === 'review' && (
-            <div className="p-6 pr-20"> {/* Added right padding for sticky buttons */}
+            <div className="p-6">
               <h2 className="text-xl font-semibold text-gray-800 mb-6">Revisão da Sua Reserva</h2>
               
               <div className="space-y-6">

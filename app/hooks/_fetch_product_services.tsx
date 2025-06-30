@@ -54,7 +54,9 @@ export default function useFetchProductServices(token: string): any {
         const startPolling = async () => {
             const shouldStop = await fetchData();
 
-            if (!shouldStop) {
+            if (shouldStop) {
+                clearTimeout(timeoutId);
+            } else {
                 intervalId = setInterval(async () => {
                     const shouldStop = await fetchData();
                     if (shouldStop) {
@@ -65,12 +67,12 @@ export default function useFetchProductServices(token: string): any {
             }
         };
 
-        // Start 25s timeout timer
+        // Start 30s timeout timer
         timeoutId = setTimeout(() => {
-            setError("Timed out after 25 seconds");
+            setError("Timed out after 30 seconds");
             setLoading(false);
             clearInterval(intervalId);
-        }, 25000);
+        }, 30000);
 
         startPolling();
 
