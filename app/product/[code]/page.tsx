@@ -14,6 +14,7 @@ export default function ProductPage() {
   const [product, setProduct] = useState<ApiData | null>(null);
   const [textArray, setTextArray] = useState<TextContent[]>([]);
   const [photoArray, setPhotoArray] = useState<PhotoContent[]>([]);
+  const [price, setPrice] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [openBar, setOpenBar] = useState<string>("");
@@ -28,6 +29,7 @@ export default function ProductPage() {
         setProduct(product.data);
         setTextArray(product.textArray || []);
         setPhotoArray(product.photoArray || []);
+        setPrice(product.price || 0);
         // Set default open bar to first type if available
         if (product.textArray && product.textArray.length > 0) {
           setOpenBar(product.textArray[0].Type);
@@ -49,6 +51,7 @@ export default function ProductPage() {
 
   // Header image and product name overlay
   const headerImage = photoArray && photoArray.length > 0 ? photoArray[0].ImageUrl : null;
+  console.log(headerImage !== "" ? headerImage : fallBackSrc.src)
 
   // Get all unique types for tabs
   const types = Array.from(new Set(textArray.map((item) => item.Type)));
@@ -58,17 +61,23 @@ export default function ProductPage() {
       {headerImage && (
         <div className="relative w-full h-64 md:h-96">
           <Image
-            src={headerImage ? headerImage : fallBackSrc.src}
+            src={headerImage !== "" ? headerImage : fallBackSrc.src}
             alt={product.Name}
             width={800}
             height={400}
             className="object-cover w-full h-full"
             style={{ objectPosition: 'center' }}
+            priority
           />
-          <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black bg-opacity-40 flex flex-col items-center justify-center">
             <h1 className="text-3xl md:text-5xl font-bold text-white drop-shadow-lg text-center px-4">
               {product.Name}
             </h1>
+            {price > 0 && (
+              <p className="text-2xl md:text-4xl font-bold text-white drop-shadow-lg text-center px-4">
+                A partir de {price} €
+              </p>
+            )}
           </div>
         </div>
       )}

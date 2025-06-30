@@ -5,6 +5,8 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { FaCalendarAlt } from "react-icons/fa";
 import { parseISO } from "date-fns";
+import { useParams, useRouter } from "next/navigation";
+import FetchProductID, {SearchProducts} from "@/app/hooks/_fetch_product_services_id";
 
 interface DepartureLocal {
   Code: string;
@@ -25,6 +27,7 @@ interface RoomType {
 }
 
 interface BaseLocal {
+  Code: string;
   MinNights: string;
   MaxNights: string;
 }
@@ -51,16 +54,23 @@ interface BookingFormProps {
 }
 
 export default function BookingForm({ data }: BookingFormProps) {
+  const router = useRouter();
+  const params = useParams();
+  const code = params.code; // code from URL
+
   // flatten
   const locales = data.DepartureLocals.item;
-  const dates = data.DepartureDates.item.map((d) => d.Date);
+  const dates = Array.isArray(data.DepartureDates.item) && data.DepartureDates.item.length > 0
+    ? data.DepartureDates.item.map((d) => d.Date)
+    : [];
   const roomTypes = data.RoomTypes.item;
+  const baseLocalsId = data.BaseLocals.item[0].Code;
   const { MinNights, MaxNights } = data.BaseLocals.item[0];
 
   // form state
-  const [selectedDate, setSelectedDate] = useState("");
-  const [selectedLocale, setSelectedLocale] = useState("");
-  const [selectedNights, setSelectedNights] = useState<number | "">("");
+  const [selectedDate, setSelectedDate] = useState(dates.length > 0 ? dates[0] : "");
+  const [selectedLocale, setSelectedLocale] = useState(locales.length > 0 ? locales[0].Code : "");
+  const [selectedNights, setSelectedNights] = useState<number | "">(Number(MinNights));
   const [numRooms, setNumRooms] = useState<number>(1);
 
   const allowedDatesSet = new Set(dates);
@@ -72,10 +82,17 @@ export default function BookingForm({ data }: BookingFormProps) {
       childAges: (number | "")[];
     }[]
   >(
-    Array.from({ length: 1 }).map(() => ({
-      roomTypeCode: "",
-      childAges: [],
-    }))
+    Array.from({ length: 1 }).map(() => {
+      const defaultRoomType = roomTypes.length > 0 ? roomTypes[0] : null;
+      return {
+        roomTypeCode: defaultRoomType ? defaultRoomType.Code : "",
+        childAges: defaultRoomType 
+          ? Array.from({ length: Number(defaultRoomType.NumChilds) }).map(() => 
+              defaultRoomType.ChildAgeFrom ? Number(defaultRoomType.ChildAgeFrom) : ""
+            )
+          : [],
+      };
+    })
   );
 
   // when numRooms changes, resize rooms array
@@ -84,7 +101,15 @@ export default function BookingForm({ data }: BookingFormProps) {
     setRooms((prev) => {
       const next = prev.slice(0, n);
       while (next.length < n) {
-        next.push({ roomTypeCode: "", childAges: [] });
+        const defaultRoomType = roomTypes.length > 0 ? roomTypes[0] : null;
+        next.push({
+          roomTypeCode: defaultRoomType ? defaultRoomType.Code : "",
+          childAges: defaultRoomType 
+            ? Array.from({ length: Number(defaultRoomType.NumChilds) }).map(() => 
+                defaultRoomType.ChildAgeFrom ? Number(defaultRoomType.ChildAgeFrom) : ""
+              )
+            : [],
+        });
       }
       return next;
     });
@@ -99,7 +124,9 @@ export default function BookingForm({ data }: BookingFormProps) {
           ? room
           : {
               roomTypeCode: code,
-              childAges: Array.from({ length: Number(rt.NumChilds) }).map(() => ""),
+              childAges: Array.from({ length: Number(rt.NumChilds) }).map(() => 
+                rt.ChildAgeFrom ? Number(rt.ChildAgeFrom) : ""
+              ),
             }
       )
     );
@@ -125,8 +152,47 @@ export default function BookingForm({ data }: BookingFormProps) {
     );
   };
 
+  // handle form submission
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault(); // Prevent default form submission
+
+    const payload: SearchProducts = {
+      productCode: data.Code,
+      departureDate: selectedDate,
+      departureLocal: selectedLocale,
+      roomTypes: {
+        item: rooms.map((room, idx) => {
+          const childAges = room.childAges
+            .filter((age) => age !== "")
+            .map(String)
+            .join(",");
+
+          return {
+            roomNum: String(idx + 1),
+            code: room.roomTypeCode,
+            childAges: childAges || undefined,
+          };
+        }),
+      },
+      baseLocals: {
+        item: [{
+          code: baseLocalsId,
+          nights: selectedNights ? String(selectedNights) : String(MinNights),
+        }]
+      },
+    };
+
+
+    try {
+      const ID: string = await FetchProductID(payload);
+      router.push(`/product/${code}/${ID}/available-services`);
+    } catch (error) {
+      console.error('Error fetching product ID:', error);
+    }
+  };
+
   return (
-    <form className="flex flex-col space-y-4 px-4 max-w-md">
+    <form className="flex flex-col space-y-4 px-4 max-w-md" onSubmit={handleSearch}>
         <h1 className="text-2xl font-bold mb-4">Reservar {data.Name}</h1>
       {/* Date dropdown */}
         <div className="flex flex-col">
@@ -161,6 +227,7 @@ export default function BookingForm({ data }: BookingFormProps) {
           onChange={(e) => setSelectedLocale(e.target.value)}
           className="h-12 rounded-xl pl-4 pr-2 text-lg border-2 border-zinc-200 bg-softBackground focus:outline-none focus:ring-highlight"
         >
+          <option value="" disabled>Selecione um local</option>
           {locales.map((loc) => (
             <option key={loc.Code} value={loc.Code}>
               {loc.Name}
@@ -177,6 +244,7 @@ export default function BookingForm({ data }: BookingFormProps) {
           onChange={(e) => setSelectedNights(+e.target.value)}
           className="h-12 rounded-xl pl-4 pr-2 text-lg border-2 border-zinc-200 bg-softBackground focus:outline-none focus:ring-highlight"
         >
+          <option value="" disabled>Selecione as noites</option>
           {Array.from(
             { length: Number(MaxNights) - Number(MinNights) + 1 },
             (_, i) => Number(MinNights) + i
@@ -225,6 +293,7 @@ export default function BookingForm({ data }: BookingFormProps) {
                 }
                 className="h-12 rounded-xl pl-4 pr-2 text-lg border-2 border-zinc-200 bg-softBackground focus:outline-none focus:ring-highlight"
               >
+                <option value="" disabled>Selecione a tipologia</option>
                 {roomTypes.map((rt) => (
                   <option key={rt.Code} value={rt.Code}>
                     {rt.Name}
@@ -245,6 +314,7 @@ export default function BookingForm({ data }: BookingFormProps) {
                     }
                     className="h-12 rounded-xl pl-4 pr-2 text-lg border-2 border-zinc-200 bg-softBackground focus:outline-none focus:ring-highlight"
                   >
+                    <option value="" disabled>Selecione a idade</option>
                     {Array.from(
                       { length: Number(ChildAgeTo) - Number(ChildAgeFrom) + 1 },
                       (_, i) => Number(ChildAgeFrom) + i
