@@ -6,7 +6,7 @@ import { useState } from "react";
 import _Label from "./_label";
 import CountryDropdown from "./_country_dropdown";
 import LocationDropdown from "./_location_dropdown";
-import DatePicker from "./_date_picker";
+import Calendar from "./_date_picker";
 import NumberInput from "./_number_input";
 import { useMasterData } from "@/app/hooks/_master_data"
 import { _Button } from "@/app/components";
@@ -74,7 +74,7 @@ export default function _MainInputArea() {
           }),
         },
         {
-          component: DatePicker,
+          component: Calendar,
           props: {
             label: "Data de Partida",
             className: "col-span-3",
@@ -98,11 +98,11 @@ export default function _MainInputArea() {
           }),
         },
         {
-          component: DatePicker,
+          component: Calendar,
           props: { label: "Data de Partida", className: "col-span-1" },
         },
         {
-          component: DatePicker,
+          component: Calendar,
           props: { label: "Data de Chegada", className: "col-span-1" },
         },
       ],
@@ -129,11 +129,11 @@ export default function _MainInputArea() {
           props: { label: "Número de Crianças", className: "col-span-2" },
         },
         {
-          component: DatePicker,
+          component: Calendar,
           props: { label: "Data de Partida", className: "col-span-4" },
         },
         {
-          component: DatePicker,
+          component: Calendar,
           props: { label: "Data de Chegada", className: "col-span-4" },
         },
       ],
@@ -160,11 +160,11 @@ export default function _MainInputArea() {
           props: { label: "Número de Crianças", className: "col-span-1" },
         },
         {
-          component: DatePicker,
+          component: Calendar,
           props: { label: "Data de Partida", className: "col-span-full" },
         },
         {
-          component: DatePicker,
+          component: Calendar,
           props: { label: "Data de Chegada", className: "col-span-full" },
         },
       ],
