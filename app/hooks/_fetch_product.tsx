@@ -13,6 +13,7 @@ export interface ResponseData {
     data: ApiData;
     textArray: TextContent[];
     photoArray: PhotoContent[];
+    price: number;
 }
 
 
@@ -32,6 +33,7 @@ export default async function FetchProduct(code: string) {
     return {
         data: product.data,
         textArray: product.descriptionArray.item || [],
-        photoArray: product.photoArray.item || []
+        photoArray: product.photoArray.item || [],
+        price: parseInt(product.price) || 0
     } as ResponseData;
 }
