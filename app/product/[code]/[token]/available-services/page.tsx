@@ -176,6 +176,19 @@ export default function AvailableServicesPage() {
   });
   
   const [selectedFlights, setSelectedFlights] = useState<{[optionCode: string]: {[segmentCode: string]: string}}>({});
+  
+  // Filter states
+  const [flightFilters, setFlightFilters] = useState<{
+    selectedLayovers: number[];
+  }>({
+    selectedLayovers: []
+  });
+  
+  const [hotelFilters, setHotelFilters] = useState<{
+    selectedStars: number[];
+  }>({
+    selectedStars: []
+  });
 
   const { data, loading, error, isDone } = useFetchProductServices(token);
 
@@ -183,12 +196,61 @@ export default function AvailableServicesPage() {
   const flightOptions = productData?.data?.FlightMainGroup?.item?.[0]?.FlightOptionsSuperBB?.item || [];
   const hotels = productData?.data?.Itinerary?.item?.find(item => item.Name === "Alojamento")?.HotelOption?.item || [];
 
+  // Helper functions for filtering
+  const getLayoverRange = () => {
+    if (flightOptions.length === 0) return { min: 0, max: 0 };
+    
+    const allLayovers = flightOptions.flatMap(option =>
+      option.FlightSegments.item.flatMap(segment =>
+        segment.Flights.item.map(flight => parseInt(flight.NumStopOvers) || 0)
+      )
+    );
+    
+    return {
+      min: Math.min(...allLayovers),
+      max: Math.max(...allLayovers)
+    };
+  };
+
+  const getStarRange = () => {
+    if (hotels.length === 0) return { min: 0, max: 0 };
+    
+    const allStars = hotels.map(hotel => parseInt(hotel.Rating) || 0);
+    
+    return {
+      min: Math.min(...allStars),
+      max: Math.max(...allStars)
+    };
+  };
+
+  // Filter functions
+  const filteredFlightOptions = flightOptions.filter(option => {
+    if (flightFilters.selectedLayovers.length === 0) return true;
+    
+    // Check if any flight in any segment matches the selected layovers
+    return option.FlightSegments.item.some(segment =>
+      segment.Flights.item.some(flight =>
+        flightFilters.selectedLayovers.includes(parseInt(flight.NumStopOvers) || 0)
+      )
+    );
+  });
+
+  const filteredHotels = hotels.filter(hotel => {
+    if (hotelFilters.selectedStars.length === 0) return true;
+    
+    return hotelFilters.selectedStars.includes(parseInt(hotel.Rating) || 0);
+  });
+
+  const layoverRange = getLayoverRange();
+  const starRange = getStarRange();
+
   // Initialize selected flights - only first option has flights selected by default
   React.useEffect(() => {
-    if (flightOptions.length > 0 && Object.keys(selectedFlights).length === 0) {
+    const originalFlightOptions = productData?.data?.FlightMainGroup?.item?.[0]?.FlightOptionsSuperBB?.item || [];
+    if (originalFlightOptions.length > 0 && Object.keys(selectedFlights).length === 0) {
       const initialSelections: {[optionCode: string]: {[segmentCode: string]: string}} = {};
       
-      flightOptions.forEach((option, optionIndex) => {
+      originalFlightOptions.forEach((option, optionIndex) => {
         initialSelections[option.OptionCode] = {};
         option.FlightSegments.item.forEach(segment => {
           if (segment.Flights.item.length > 0) {
@@ -215,8 +277,8 @@ export default function AvailableServicesPage() {
       const firstOptionSelections = initialSelections["0"] || {};
       const hasAllFlightsSelected = Object.values(firstOptionSelections).every(selection => selection !== "");
       
-      if (hasAllFlightsSelected && flightOptions[0]) {
-        const firstOption = flightOptions[0];
+      if (hasAllFlightsSelected && originalFlightOptions[0]) {
+        const firstOption = originalFlightOptions[0];
         const numSegments = firstOption.FlightSegments.item.length;
         if (numSegments === 2) { // Outgoing and incoming
           setBookingState(prev => ({
@@ -229,7 +291,7 @@ export default function AvailableServicesPage() {
         }
       }
     }
-  }, [flightOptions, selectedFlights]);
+  }, [productData, selectedFlights]);
 
   if (loading && !isDone) {
     return (
@@ -337,6 +399,8 @@ export default function AvailableServicesPage() {
   }
 
   const handleFlightSelection = (optionCode: string, segmentCode: string, flightGroupCode: string) => {
+    const originalFlightOptions = productData?.data?.FlightMainGroup?.item?.[0]?.FlightOptionsSuperBB?.item || [];
+    
     // Check if we're selecting from the same entry as currently selected flights
     const currentlySelectedEntry = Object.keys(selectedFlights).find(entryCode => 
       Object.values(selectedFlights[entryCode] || {}).some(selection => selection !== "")
@@ -347,7 +411,7 @@ export default function AvailableServicesPage() {
     if (currentlySelectedEntry && currentlySelectedEntry !== optionCode) {
       // Selecting from a different entry - clear all and start fresh
       newSelections = {};
-      flightOptions.forEach(option => {
+      originalFlightOptions.forEach(option => {
         newSelections[option.OptionCode] = {};
         option.FlightSegments.item.forEach(segment => {
           newSelections[option.OptionCode][segment.SegmentCode] = "";
@@ -357,7 +421,7 @@ export default function AvailableServicesPage() {
       // Selecting from the same entry or no entry selected yet - preserve existing selections
       newSelections = { ...selectedFlights };
       // Ensure all entries are initialized
-      flightOptions.forEach(option => {
+      originalFlightOptions.forEach(option => {
         if (!newSelections[option.OptionCode]) {
           newSelections[option.OptionCode] = {};
           option.FlightSegments.item.forEach(segment => {
@@ -368,7 +432,7 @@ export default function AvailableServicesPage() {
     }
 
     // Find the selected option
-    const selectedOption = flightOptions.find(opt => opt.OptionCode === optionCode);
+    const selectedOption = originalFlightOptions.find(opt => opt.OptionCode === optionCode);
     if (!selectedOption) return;
 
     // Set the selected flight for this segment
@@ -459,11 +523,14 @@ export default function AvailableServicesPage() {
   };
 
   const calculateTotalPrice = () => {
+    const originalFlightOptions = productData?.data?.FlightMainGroup?.item?.[0]?.FlightOptionsSuperBB?.item || [];
+    const originalHotels = productData?.data?.Itinerary?.item?.find(item => item.Name === "Alojamento")?.HotelOption?.item || [];
+    
     let total = 0;
     
     // Flight price
     if (bookingState.selectedFlight) {
-      const selectedOption = flightOptions.find(option => option.OptionCode === bookingState.selectedFlight!.optionCode);
+      const selectedOption = originalFlightOptions.find(option => option.OptionCode === bookingState.selectedFlight!.optionCode);
       if (selectedOption) {
         total += parseFloat(selectedOption.RateTaxVal) || 0;
         total += parseFloat(selectedOption.SuplementsTotalVal) || 0;
@@ -473,7 +540,7 @@ export default function AvailableServicesPage() {
     
     // Hotel price
     if (bookingState.selectedHotel) {
-      const selectedHotel = hotels.find(hotel => hotel.Code === bookingState.selectedHotel!.hotelCode);
+      const selectedHotel = originalHotels.find(hotel => hotel.Code === bookingState.selectedHotel!.hotelCode);
       if (selectedHotel) {
         const roomGroup = selectedHotel.RoomsOccupancy.item[0];
         if (roomGroup) {
@@ -521,32 +588,10 @@ export default function AvailableServicesPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-gray-50 min-h-screen">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800">{productData.data.Name}</h1>
-              <p className="text-gray-600">Código: {productData.data.CodeDefined}</p>
-            </div>
-            {isDone && (
-              <div className="flex items-center text-green-600">
-                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span className="font-medium">Serviços carregados</span>
-              </div>
-            )}
-          </div>
-          
-          <div className="bg-blue-50 rounded-lg p-4">
-            <h2 className="text-lg font-semibold text-blue-800 mb-2">Preço Total</h2>
-            <div className="text-3xl font-bold text-blue-600">
-              €{calculateTotalPrice().toFixed(2)}
-            </div>
-          </div>
-        </div>
+    <div className="bg-gray-50 min-h-screen">
+      <div className="flex max-w-7xl mx-auto px-4 py-8">
+        {/* Main Content */}
+        <div className="flex-1 pr-8">
 
         {/* Tab Navigation */}
         <div className="bg-white rounded-lg shadow-lg mb-6">
@@ -594,71 +639,64 @@ export default function AvailableServicesPage() {
         </div>
 
         {/* Tab Content */}
-        <div className="bg-white rounded-lg shadow-lg relative">
-          {/* Sticky Navigation Buttons */}
-          <div className="fixed right-4 top-1/2 transform -translate-y-1/2 z-10 flex flex-col space-y-2">          {/* Flight Tab Navigation */}
-          {bookingState.currentTab === 'flights' && (
-            <button
-              onClick={() => switchTab('hotels')}
-              disabled={!bookingState.selectedFlight}
-              className={`font-medium py-2 px-4 rounded-lg transition-colors shadow-lg ${
-                bookingState.selectedFlight
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              Seguinte →
-            </button>
-          )}
-            
-            {/* Hotel Tab Navigation */}
-            {bookingState.currentTab === 'hotels' && (
-              <div className="flex flex-col space-y-2">
-                <button
-                  onClick={() => switchTab('flights')}
-                  className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-lg"
-                >
-                  ← Voltar
-                </button>
-                {bookingState.selectedHotel && (
-                  <button
-                    onClick={() => switchTab('review')}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-lg"
-                  >
-                    Seguinte →
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Review Tab Navigation */}
-            {bookingState.currentTab === 'review' && (
-              <div className="flex flex-col space-y-2">
-                <button
-                  onClick={() => switchTab('hotels')}
-                  className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-lg"
-                >
-                  ← Voltar
-                </button>
-                <button
-                  onClick={() => {
-                    // Here you would typically handle the booking confirmation
-                    alert('Reserva confirmada! Redireccionar para o processo de pagamento.');
-                  }}
-                  className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-lg"
-                >
-                  Confirmar
-                </button>
-              </div>
-            )}
-          </div>
+        <div className="bg-white rounded-lg shadow-lg">
+          {/* Remove the sticky navigation buttons from here as they'll be in the sidebar */}
           {/* Flight Selection Tab */}
           {bookingState.currentTab === 'flights' && (
             <div className="p-6">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">Escolha a Sua Opção de Voo</h2>
               
+              {/* Flight Filters */}
+              {layoverRange.max > layoverRange.min && (
+                <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <span className="font-medium text-gray-700">Filtrar por escalas:</span>
+                      <div className="flex items-center space-x-2">
+                        {Array.from({ length: layoverRange.max - layoverRange.min + 1 }, (_, i) => {
+                          const layoverCount = layoverRange.min + i;
+                          const isSelected = flightFilters.selectedLayovers.includes(layoverCount);
+                          
+                          return (
+                            <button
+                              key={layoverCount}
+                              onClick={() => {
+                                setFlightFilters(prev => ({
+                                  ...prev,
+                                  selectedLayovers: isSelected
+                                    ? prev.selectedLayovers.filter(l => l !== layoverCount)
+                                    : [...prev.selectedLayovers, layoverCount]
+                                }));
+                              }}
+                              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                                isSelected
+                                  ? 'bg-blue-600 text-white'
+                                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+                              }`}
+                            >
+                              {layoverCount === 0 ? 'Direto' : `${layoverCount} escala${layoverCount > 1 ? 's' : ''}`}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setFlightFilters(prev => ({ ...prev, selectedLayovers: [] }))}
+                      disabled={flightFilters.selectedLayovers.length === 0}
+                      className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                        flightFilters.selectedLayovers.length === 0
+                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                          : 'bg-red-100 text-red-700 hover:bg-red-200'
+                      }`}
+                    >
+                      Limpar filtros
+                    </button>
+                  </div>
+                </div>
+              )}
+              
               <div className="space-y-6 mb-6">
-                {flightOptions.map((option) => {
+                {filteredFlightOptions.map((option) => {
                   // Check if this option has any flights selected
                   const hasSelectedFlights = Object.values(selectedFlights[option.OptionCode] || {}).some(selection => selection !== "");
                   
@@ -844,8 +882,60 @@ export default function AvailableServicesPage() {
             <div className="p-6">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">Escolha o Seu Alojamento</h2>
               
+              {/* Hotel Filters */}
+              {starRange.max > starRange.min && (
+                <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <span className="font-medium text-gray-700">Filtrar por estrelas:</span>
+                      <div className="flex items-center space-x-2">
+                        {Array.from({ length: starRange.max - starRange.min + 1 }, (_, i) => {
+                          const starCount = starRange.min + i;
+                          const isSelected = hotelFilters.selectedStars.includes(starCount);
+                          
+                          return (
+                            <button
+                              key={starCount}
+                              onClick={() => {
+                                setHotelFilters(prev => ({
+                                  ...prev,
+                                  selectedStars: isSelected
+                                    ? prev.selectedStars.filter(s => s !== starCount)
+                                    : [...prev.selectedStars, starCount]
+                                }));
+                              }}
+                              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center space-x-1 ${
+                                isSelected
+                                  ? 'bg-blue-600 text-white'
+                                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+                              }`}
+                            >
+                              <span>{starCount}</span>
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              </svg>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setHotelFilters(prev => ({ ...prev, selectedStars: [] }))}
+                      disabled={hotelFilters.selectedStars.length === 0}
+                      className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                        hotelFilters.selectedStars.length === 0
+                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                          : 'bg-red-100 text-red-700 hover:bg-red-200'
+                      }`}
+                    >
+                      Limpar filtros
+                    </button>
+                  </div>
+                </div>
+              )}
+              
               <div className="space-y-6 mb-6">
-                {hotels.map((hotel) => {
+                {filteredHotels.map((hotel) => {
                   // Flatten all rooms from all room groups for this hotel
                   const allRooms = hotel.RoomsOccupancy.item.flatMap(roomGroup => 
                     roomGroup.Rooms.item.map(room => ({ ...room, roomGroup: roomGroup.RoomGroup }))
@@ -958,7 +1048,7 @@ export default function AvailableServicesPage() {
                                         <div className="text-lg font-bold text-green-600">€{room.SellValue}</div>
                                         {parseFloat(room.UpgradeSupVal) > 0 && (
                                           <div className="text-xs text-orange-600">
-                                            +€{room.UpgradeSupVal} upgrade
+                                            +€{parseFloat(room.UpgradeSupVal).toFixed(2)} upgrade
                                           </div>
                                         )}
                                       </div>
@@ -994,7 +1084,8 @@ export default function AvailableServicesPage() {
                     </h3>
                     
                     {(() => {
-                      const selectedFlightOption = flightOptions.find(option => option.OptionCode === bookingState.selectedFlight!.optionCode);
+                      const originalFlightOptions = productData?.data?.FlightMainGroup?.item?.[0]?.FlightOptionsSuperBB?.item || [];
+                      const selectedFlightOption = originalFlightOptions.find(option => option.OptionCode === bookingState.selectedFlight!.optionCode);
                       return selectedFlightOption && (
                         <div>
                           <div className="flex items-center justify-between mb-3">
@@ -1029,7 +1120,8 @@ export default function AvailableServicesPage() {
                     </h3>
                     
                     {(() => {
-                      const selectedHotel = hotels.find(hotel => hotel.Code === bookingState.selectedHotel!.hotelCode);
+                      const originalHotels = productData?.data?.Itinerary?.item?.find(item => item.Name === "Alojamento")?.HotelOption?.item || [];
+                      const selectedHotel = originalHotels.find(hotel => hotel.Code === bookingState.selectedHotel!.hotelCode);
                       const selectedRoom = selectedHotel?.RoomsOccupancy.item[0]?.Rooms.item.find(room => 
                         room.Code === bookingState.selectedHotel!.roomCode && 
                         room.RoomNum === bookingState.selectedHotel!.roomNum
@@ -1119,7 +1211,8 @@ export default function AvailableServicesPage() {
                   <h3 className="text-lg font-semibold text-blue-800 mb-4">Resumo de Preços</h3>
                   <div className="space-y-2 text-sm">
                     {bookingState.selectedFlight && (() => {
-                      const selectedOption = flightOptions.find(option => option.OptionCode === bookingState.selectedFlight!.optionCode);
+                      const originalFlightOptions = productData?.data?.FlightMainGroup?.item?.[0]?.FlightOptionsSuperBB?.item || [];
+                      const selectedOption = originalFlightOptions.find(option => option.OptionCode === bookingState.selectedFlight!.optionCode);
                       return selectedOption && (
                         <div className="flex justify-between">
                           <span>Voo:</span>
@@ -1129,7 +1222,8 @@ export default function AvailableServicesPage() {
                     })()}
                     
                     {bookingState.selectedHotel && (() => {
-                      const selectedHotel = hotels.find(hotel => hotel.Code === bookingState.selectedHotel!.hotelCode);
+                      const originalHotels = productData?.data?.Itinerary?.item?.find(item => item.Name === "Alojamento")?.HotelOption?.item || [];
+                      const selectedHotel = originalHotels.find(hotel => hotel.Code === bookingState.selectedHotel!.hotelCode);
                       const selectedRoom = selectedHotel?.RoomsOccupancy.item[0]?.Rooms.item.find(room => 
                         room.Code === bookingState.selectedHotel!.roomCode && 
                         room.RoomNum === bookingState.selectedHotel!.roomNum
@@ -1179,6 +1273,149 @@ export default function AvailableServicesPage() {
               </div>
             </div>
           )}
+        </div>
+        </div>
+
+        {/* Sticky Sidebar */}
+        <div className="w-80 ml-8">
+          <div className="sticky top-28 space-y-4">
+            {/* Header Information */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="mb-4">
+                <h1 className="text-xl font-bold text-gray-800">{productData.data.Name}</h1>
+                <p className="text-gray-600 text-sm">Código: {productData.data.CodeDefined}</p>
+                {isDone && (
+                  <div className="flex items-center text-green-600 mt-2">
+                    <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span className="font-medium text-sm">Serviços carregados</span>
+                  </div>
+                )}
+              </div>
+              
+              {/* Price Breakdown */}
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h2 className="text-lg font-semibold text-blue-800 mb-3">Resumo de Preços</h2>
+                <div className="space-y-2 text-sm">
+                  {bookingState.selectedFlight && (() => {
+                    const originalFlightOptions = productData?.data?.FlightMainGroup?.item?.[0]?.FlightOptionsSuperBB?.item || [];
+                    const selectedOption = originalFlightOptions.find(option => option.OptionCode === bookingState.selectedFlight!.optionCode);
+                    return selectedOption && (
+                      <div className="flex justify-between">
+                        <span>Voo:</span>
+                        <span>€{(parseFloat(selectedOption.RateTaxVal) + parseFloat(selectedOption.SuplementsTotalVal) + parseFloat(selectedOption.Tax)).toFixed(2)}</span>
+                      </div>
+                    );
+                  })()}
+                  
+                  {bookingState.selectedHotel && (() => {
+                    const originalHotels = productData?.data?.Itinerary?.item?.find(item => item.Name === "Alojamento")?.HotelOption?.item || [];
+                    const selectedHotel = originalHotels.find(hotel => hotel.Code === bookingState.selectedHotel!.hotelCode);
+                    const selectedRoom = selectedHotel?.RoomsOccupancy.item[0]?.Rooms.item.find(room => 
+                      room.Code === bookingState.selectedHotel!.roomCode && 
+                      room.RoomNum === bookingState.selectedHotel!.roomNum
+                    );
+                    return selectedRoom && (
+                      <div className="flex justify-between">
+                        <span>Alojamento:</span>
+                        <span>€{selectedRoom.SellValue}</span>
+                      </div>
+                    );
+                  })()}
+                  
+                  {bookingState.selectedInsurance !== "included" && (() => {
+                    const upgrade = productData.data.DynInsurance.Upgrades.item.find(
+                      item => item.ID === bookingState.selectedInsurance
+                    );
+                    return upgrade && (
+                      <div className="flex justify-between">
+                        <span>Seguro:</span>
+                        <span>€{upgrade.Sellvalue}</span>
+                      </div>
+                    );
+                  })()}
+                  
+                  <div className="border-t pt-2 mt-3 flex justify-between font-bold text-lg">
+                    <span>Total:</span>
+                    <span className="text-blue-600">€{calculateTotalPrice().toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Navigation Buttons */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="space-y-3">
+                {/* Flight Tab Navigation */}
+                {bookingState.currentTab === 'flights' && (
+                  <>
+                    <button
+                      disabled={true}
+                      className="cursor-not-allowed w-full bg-gray-300 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                    >
+                      ← Voltar
+                    </button>
+                    <button
+                      onClick={() => switchTab('hotels')}
+                      disabled={!bookingState.selectedFlight}
+                      className={`w-full font-medium py-3 px-4 rounded-lg transition-colors ${
+                        bookingState.selectedFlight
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                    >
+                      Seguinte →
+                    </button>
+                  </>
+                )}
+                
+                {/* Hotel Tab Navigation */}
+                {bookingState.currentTab === 'hotels' && (
+                  <>
+                    <button
+                      onClick={() => switchTab('flights')}
+                      className="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                    >
+                      ← Voltar
+                    </button>
+                    <button
+                      onClick={() => switchTab('review')}
+                      disabled={!bookingState.selectedHotel}
+                      className={`w-full font-medium py-3 px-4 rounded-lg transition-colors ${
+                        bookingState.selectedHotel
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                    >
+                      Seguinte →
+                    </button>
+                  </>
+                )}
+
+                {/* Review Tab Navigation */}
+                {bookingState.currentTab === 'review' && (
+                  <>
+                    <button
+                      onClick={() => switchTab('hotels')}
+                      className="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                    >
+                      ← Voltar
+                    </button>
+                    <button
+                      onClick={() => {
+                        // Here you would typically handle the booking confirmation
+                        alert('Reserva confirmada! Redireccionar para o processo de pagamento.');
+                      }}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                    >
+                      Confirmar
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
