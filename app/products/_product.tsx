@@ -11,6 +11,7 @@ const _Product = ({ product }: { product: any }) => {
           src={product.ImageUrl}
           alt={product.Name}
           fill
+          loading="lazy"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
           style={{ objectFit: "cover" }}
         />

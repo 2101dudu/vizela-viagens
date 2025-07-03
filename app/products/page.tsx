@@ -31,7 +31,7 @@ export default function ResultsPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Dropdown state
-  const [sortBy, setSortBy] = useState<string>("price");
+  const [sortBy, setSortBy] = useState<string>("relevance");
   const [sortOrder, setSortOrder] = useState<string>("asc");
 
   // New filter states
@@ -194,6 +194,7 @@ export default function ResultsPage() {
           <div className="flex flex-col gap-2 w-1/5 min-w-[180px] mr-4">
             <label className="font-semibold">Ordenar por</label>
             <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="border rounded p-1">
+              <option value="relevance">Relevância</option>
               <option value="price">Preço</option>
               <option value="name">Nome</option>
             </select>
