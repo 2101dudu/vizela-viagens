@@ -26,13 +26,28 @@ export function useMasterData() {
     const fetchData = async () => {
       const res = await fetch("http://localhost:8080/api/get/master-data");
       const json = await res.json();
-      const countries = json.SearchProductMasterDataArray.CountriesArray.item;
-      const locations = json.SearchProductMasterDataArray.LocationsArray.item;
+      let countries: Country[] = json.SearchProductMasterDataArray.CountriesArray.item;
+      let locations: Location[] = json.SearchProductMasterDataArray.LocationsArray.item;
+
+      // Sort by Portuguese name (description field)
+      countries.sort((a, b) => {
+        const nameA = a.Description || "";
+        const nameB = b.Description || "";
+        return nameA.localeCompare(nameB, "pt", { sensitivity: "base" });
+      });
+
+      locations.sort((a, b) => {
+        const nameA = a.Description || "";
+        const nameB = b.Description || "";
+        return nameA.localeCompare(nameB, "pt", { sensitivity: "base" });
+      });
+
       setData({ countries, locations });
     };
 
     fetchData();
   }, []);
+
 
   return data;
 }
