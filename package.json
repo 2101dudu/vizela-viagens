@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@types/react-window": "^1.8.8",
     "flowbite-react": "^0.10.2",
     "framer-motion": "^12.5.0",
     "gsap": "^3.12.7",
@@ -16,7 +17,8 @@
     "react": "^19.0.0",
     "react-datepicker": "^8.4.0",
     "react-dom": "^19.0.0",
-    "react-select": "^5.10.1"
+    "react-select": "^5.10.1",
+    "react-window": "^1.8.11"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
