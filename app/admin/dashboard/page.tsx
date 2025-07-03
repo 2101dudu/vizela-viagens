@@ -8,10 +8,10 @@ import Link from 'next/dist/client/link';
 import { FixedSizeList as List } from 'react-window';
 
 const optionChoices = [
-  { value: "CHARTER", label: "CHARTER" },
-  { value: "PRAIA", label: "PRAIA" },
-  { value: "FIM DE ANO", label: "FIM DE ANO" },
-  { value: "CITY BREAK", label: "CITY BREAK" },
+  { value: "Charter", label: "Charter" },
+  { value: "Praia", label: "Praia" },
+  { value: "Fim de Ano", label: "Fim de Ano" },
+  { value: "City Break", label: "City Break" },
 ];
 
 const ProductCard = React.memo(({
@@ -141,10 +141,10 @@ const ProductCard = React.memo(({
           onClick={() => onToggleEnabled(code, !enabled)}
           disabled={isSubmitting[code]}
           title={enabled ? 'Disable product' : 'Enable product'}
-          className={`py-2 px-4 bg-gray-50 shadow-md text-blue-300 focus:outline-none absolute top-1/2 -translate-y-1/2 right-1 text-4xl z-10
+          className={`py-2 px-4 bg-gray-50 shadow-md focus:outline-none absolute top-1/2 -translate-y-1/2 right-1 text-4xl z-10
             ${enabled
               ? "hover:text-red-600"
-              : "hover:text-blue-700"}
+              : "hover:text-green-400"}
           `}
           >
           {enabled ? '×' : '+'}
@@ -160,6 +160,16 @@ export default function AdminDashboard() {
   const [error, setError] = useState('');
   const [dropdownSelections, setDropdownSelections] = useState<{ [key: string]: string[] }>({});
   const [isSubmitting, setIsSubmitting] = useState<{ [key: string]: boolean }>({});
+  
+  // Added filter and ordering states
+  const [orderBy, setOrderBy] = useState<string>('name');
+  const [orderDirection, setOrderDirection] = useState<string>('ascending');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [productStatus, setProductStatus] = useState<string[]>(['enabled', 'disabled']);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<ProductWrapper[]>([]);
+  const [nameFilter, setNameFilter] = useState<string>('');
+  
   const router = useRouter();
 
   useEffect(() => {
@@ -180,7 +190,16 @@ export default function AdminDashboard() {
           }
         });
 
+        // Extract all unique tags from products
+        const uniqueTags = Array.from(
+          new Set(
+            productList.flatMap(product => product.tags || [])
+          )
+        );
+        
+        setAvailableTags(uniqueTags);
         setProducts(productList);
+        setFilteredProducts(productList);
       } catch (error) {
         console.error('Error fetching products:', error);
         setError('Failed to load products');
@@ -192,6 +211,46 @@ export default function AdminDashboard() {
 
     fetchProducts();
   }, [router]);
+
+  useEffect(() => {
+    let filtered = [...products];
+
+    // Filter by selected tags
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter(product => 
+        selectedTags.every(tag => product.tags?.includes(tag))
+      );
+    }
+
+    // Filter by product status
+    filtered = filtered.filter(product => 
+      productStatus.includes(product.enabled ? 'enabled' : 'disabled') || productStatus.length === 0
+    );
+
+    // Filter by name
+    if (nameFilter) {
+      filtered = filtered.filter(product => 
+        product.product.Name?.toLowerCase().includes(nameFilter.toLowerCase())
+      );
+    }
+
+    // Sort products
+    filtered.sort((a, b) => {
+      const aValue:string | undefined = orderBy === 'name' ? a.product.Name : a.product.PriceFrom;
+      const bValue:string | undefined = orderBy === 'name' ? b.product.Name : b.product.PriceFrom;
+
+      if (aValue === undefined) return 1;
+      if (bValue === undefined) return -1;
+
+      if (orderDirection === 'ascending') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+
+    setFilteredProducts(filtered);
+  }, [products, selectedTags, productStatus, orderBy, orderDirection, nameFilter]);
 
   const handleDropdownChange = useCallback((productCode: string, selectedOptions: any) => {
     const values = selectedOptions ? selectedOptions.map((option: any) => option.value) : [];
@@ -211,7 +270,7 @@ export default function AdminDashboard() {
         return;
       }
 
-      const response = await fetch(`http://localhost:8080/api/admin/products/${productCode}/tags`, {
+      const response = await fetch(`http://localhost:8080/api/admin/products/${productCode}/tags/add`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -248,7 +307,6 @@ export default function AdminDashboard() {
   }, [dropdownSelections, router]);
 
   const handleRemoveOption = useCallback(async (productCode: string, optionToRemove: string) => {
-    setIsSubmitting(prev => ({ ...prev, [productCode]: true }));
     try {
       const token = localStorage.getItem('adminToken');
       if (!token) {
@@ -256,8 +314,8 @@ export default function AdminDashboard() {
         return;
       }
 
-      const response = await fetch(`http://localhost:8080/api/admin/products/${productCode}/tags/${optionToRemove}`, {
-        method: 'POST',
+      const response = await fetch(`http://localhost:8080/api/admin/products/${productCode}/tags/remove/${optionToRemove}`, {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -281,8 +339,6 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Error removing tag:', error);
       setError('Failed to remove tag');
-    } finally {
-      setIsSubmitting(prev => ({ ...prev, [productCode]: false }));
     }
   }, [router]);
 
@@ -346,28 +402,144 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {products.length > 0 ? (
-          <List
-            height={800}
-            itemCount={products.length}
-            itemSize={200}
-            width={"100%"}
-          >
-            {({ index, style }: { index: number; style: React.CSSProperties }) => (
-              <div style={style}>
-                <ProductCard
-                  key={products[index].product.Code}
-                  product={products[index]}
-                  dropdownSelections={dropdownSelections}
-                  isSubmitting={isSubmitting}
-                  onDropdownChange={handleDropdownChange}
-                  onAddOptions={handleAddOptions}
-                  onRemoveOption={handleRemoveOption}
-                  onToggleEnabled={handleToggleEnabled}
+        {/* Filter and Order Controls */}
+        <div className="mb-6 p-6 bg-white rounded-lg shadow">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Filters and Ordering</h2>
+          
+          <div className="flex flex-col md:flex-row gap-8">
+            {/* Ordering Options */}
+            <div className="w-full md:w-1/2">
+              <h3 className="font-medium text-gray-700 mb-3">Ordering Options</h3>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="w-full sm:w-1/2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Order by</label>
+                  <select 
+                    value={orderBy} 
+                    onChange={(e) => setOrderBy(e.target.value)}
+                    className="w-full border rounded p-2"
+                  >
+                    <option value="price">Price</option>
+                    <option value="name">Name</option>
+                  </select>
+                </div>
+                <div className="w-full sm:w-1/2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Order direction</label>
+                  <select 
+                    value={orderDirection} 
+                    onChange={(e) => setOrderDirection(e.target.value)}
+                    className="w-full border rounded p-2"
+                  >
+                    <option value="ascending">Ascending</option>
+                    <option value="descending">Descending</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            
+            {/* Filtering Options */}
+            <div className="w-full md:w-1/2">
+              <h3 className="font-medium text-gray-700 mb-3">Filtering Options</h3>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                <input
+                  type="text"
+                  value={nameFilter}
+                  onChange={(e) => setNameFilter(e.target.value)}
+                  placeholder="Filter by product name..."
+                  className="w-full border rounded p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
-            )}
-          </List>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+                <div className="flex flex-wrap gap-2">
+                  {availableTags.map(tag => (
+                    <label key={tag} className="inline-flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedTags.includes(tag)}
+                        onChange={() => {
+                          if (selectedTags.includes(tag)) {
+                            setSelectedTags(selectedTags.filter(t => t !== tag));
+                          } else {
+                            setSelectedTags([...selectedTags, tag]);
+                          }
+                        }}
+                        className="h-4 w-4 text-blue-600 rounded border-gray-300 mr-1"
+                      />
+                      <span className="text-sm text-gray-700">{tag}</span>
+                    </label>
+                  ))}
+                  {availableTags.length === 0 && (
+                    <span className="text-sm text-gray-500">No tags available</span>
+                  )}
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Product Status</label>
+                <div className="flex gap-4">
+                  <label className="inline-flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={productStatus.includes('enabled')}
+                      onChange={() => {
+                        if (productStatus.includes('enabled')) {
+                          setProductStatus(productStatus.filter(s => s !== 'enabled'));
+                        } else {
+                          setProductStatus([...productStatus, 'enabled']);
+                        }
+                      }}
+                      className="h-4 w-4 text-blue-600 rounded border-gray-300 mr-1"
+                    />
+                    <span className="text-sm text-gray-700">Enabled</span>
+                  </label>
+                  <label className="inline-flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={productStatus.includes('disabled')}
+                      onChange={() => {
+                        if (productStatus.includes('disabled')) {
+                          setProductStatus(productStatus.filter(s => s !== 'disabled'));
+                        } else {
+                          setProductStatus([...productStatus, 'disabled']);
+                        }
+                      }}
+                      className="h-4 w-4 text-blue-600 rounded border-gray-300 mr-1"
+                    />
+                    <span className="text-sm text-gray-700">Disabled</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {filteredProducts.length > 0 ? (
+          <div className="bg-gray-100 rounded-lg shadow p-6">
+            <List
+              height={800}
+              itemCount={filteredProducts.length}
+              itemSize={200}
+              width={"100%"}
+            >
+              {({ index, style }: { index: number; style: React.CSSProperties }) => (
+                <div style={style}>
+                  <ProductCard
+                    key={filteredProducts[index].product.Code}
+                    product={filteredProducts[index]}
+                    dropdownSelections={dropdownSelections}
+                    isSubmitting={isSubmitting}
+                    onDropdownChange={handleDropdownChange}
+                    onAddOptions={handleAddOptions}
+                    onRemoveOption={handleRemoveOption}
+                    onToggleEnabled={handleToggleEnabled}
+                  />
+                </div>
+              )}
+            </List>
+          </div>
         ) : (
           <div className="text-center text-gray-500 mt-8">Nenhum produto encontrado.</div>
         )}
