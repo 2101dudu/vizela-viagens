@@ -193,12 +193,7 @@ export default function AdminDashboard() {
         });
 
         // Extract all unique tags from products
-        const uniqueTags = Array.from(
-          new Set(
-            productList.flatMap(product => product.tags || [])
-          )
-        );
-        
+        const uniqueTags = optionChoices.map(option => option.value)
         setAvailableTags(uniqueTags);
         setProducts(productList);
         setFilteredProducts(productList);
@@ -220,7 +215,7 @@ export default function AdminDashboard() {
     // Filter by selected tags
     if (selectedTags.length > 0) {
       filtered = filtered.filter(product => 
-        selectedTags.every(tag => product.tags?.includes(tag))
+        selectedTags.some(tag => product.tags?.includes(tag))
       );
     }
 
