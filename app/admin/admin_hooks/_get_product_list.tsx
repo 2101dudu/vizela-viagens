@@ -8,6 +8,7 @@ export interface Product {
 export interface ProductWrapper {
   product: Product;
   tags: string[];
+  enabled?: boolean;
 }
 
 export const _get_product_list = async (): Promise<ProductWrapper[]> => {
