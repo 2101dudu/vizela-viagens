@@ -947,10 +947,10 @@ export default function AvailableServicesPage() {
                         {/* Hotel Image - Fixed size */}
                         <div className="md:w-1/3 md:flex-shrink-0">
                           <div className="relative h-64 md:h-80">
-                            <Image
+                            <img
                               src={hotel.Image}
                               alt={hotel.Name}
-                              fill
+                              loading="lazy"
                               className="object-cover"
                               onError={(e) => {
                                 e.currentTarget.src = '/fallback.png';
