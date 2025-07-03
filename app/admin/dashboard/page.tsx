@@ -156,6 +156,7 @@ const ProductCard = React.memo(({
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState<ProductWrapper[]>([]);
+  const [numProducts, setNumProducts] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [dropdownSelections, setDropdownSelections] = useState<{ [key: string]: string[] }>({});
@@ -182,6 +183,7 @@ export default function AdminDashboard() {
         }
 
         const productList = await _get_product_list();
+        setNumProducts(productList.length);
 
         // Sanity check enabled field:
         productList.forEach(p => {
@@ -518,6 +520,9 @@ export default function AdminDashboard() {
 
         {filteredProducts.length > 0 ? (
           <div className="bg-gray-100 rounded-lg shadow p-6">
+            <h1 className="text-2xl text-center font-bold text-gray-900 mb-10">
+              ({numProducts}) Produtos
+            </h1>
             <List
               height={800}
               itemCount={filteredProducts.length}
