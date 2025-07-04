@@ -960,7 +960,7 @@ export default function AvailableServicesPage() {
                         </div>
                         
                         {/* Hotel Details */}
-                        <div className="md:w-2/3 p-6">
+                        <div className="md:w-4/5 p-6">
                           <div className="flex items-start justify-between mb-4">
                             <div>
                               <h3 className="text-xl font-bold text-gray-800 mb-2">{hotel.Name}</h3>

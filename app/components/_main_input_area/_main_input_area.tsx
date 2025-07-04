@@ -190,7 +190,7 @@ export default function _MainInputArea() {
   const currentConfig = inputConfigs[selectedLabel];
 
   return (
-    <div className="w-2/3 h-auto drop-shadow-my">
+    <div className="w-4/5 h-auto drop-shadow-my">
       <div className="flex gap-2">
         {labels.map((element, index) => (
           <_Label

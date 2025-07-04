@@ -81,7 +81,7 @@ export default function ProductPage() {
           </div>
         </div>
       )}
-      <div className="w-2/3 p-6 mx-auto">
+      <div className="w-4/5 p-6 mx-auto">
         <div className="w-full flex justify-between">
           <BookingForm data={product} />
           <div className="w-4/5 ml-6 ">

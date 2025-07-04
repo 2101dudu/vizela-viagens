@@ -22,7 +22,7 @@ const _Product = ({ product }: { product: any }) => {
       <div className="p-2 flex flex-col items-center">
         <h1 className="text-xl w-full truncate">{product.Name}</h1>
         <p className="text-lg w-full mb-5">Desde <b className="text-2xl font-bold text-highlight">{product.PriceFrom}€</b></p>
-        <_Button href={`/product/${product.Code}`} highlighted>Ver Detalhes</_Button>
+        <_Button href={`/products/${product.Code}`} highlighted>Ver Detalhes</_Button>
       </div>
     </div>
   );

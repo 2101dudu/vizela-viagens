@@ -6,6 +6,7 @@ import Select from 'react-select';
 import { _get_product_list, ProductWrapper } from '../admin_hooks/_get_product_list';
 import Link from 'next/dist/client/link';
 import { FixedSizeList as List } from 'react-window';
+import FetchHighlightedTag from '@/app/hooks/_fetch_highlighted_tag';
 
 const optionChoices = [
   { value: "charter", label: "charter" },
@@ -71,7 +72,7 @@ const ProductCard = React.memo(({
           />
         </div>
 
-        <div className="flex flex-col w-2/3">
+        <div className="flex flex-col w-4/5">
           {enabled ? (
             <Link href={`/product/${code}`} className="underline text-lg font-semibold text-gray-900">
               {product.product.Name || 'Produto sem nome'}
@@ -161,6 +162,7 @@ export default function AdminDashboard() {
   const [error, setError] = useState('');
   const [dropdownSelections, setDropdownSelections] = useState<{ [key: string]: string[] }>({});
   const [isSubmitting, setIsSubmitting] = useState<{ [key: string]: boolean }>({});
+  const [highlightedTag, setHighlightedTag] = useState<string>("");
   
   // Added filter and ordering states
   const [orderBy, setOrderBy] = useState<string>('name');
@@ -208,6 +210,20 @@ export default function AdminDashboard() {
 
     fetchProducts();
   }, [router]);
+
+  useEffect(() => {
+    const fetchHighlighted = async () => {
+      try {
+        const tagFromBackend: any = await FetchHighlightedTag();
+        setHighlightedTag(tagFromBackend.tag || "");
+      } catch (err) {
+        console.error("Failed to fetch highlighted tag:", err);
+      }
+    };
+
+    fetchHighlighted();
+  }, []);
+
 
   useEffect(() => {
     let filtered = [...products];
@@ -306,6 +322,27 @@ export default function AdminDashboard() {
     }
   }, [dropdownSelections, router]);
 
+  const requestHighlightedTagChange = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        router.push('/admin');
+        return;
+      }
+      const res = await fetch(`http://localhost:8080/api/admin/page/highlight/${highlightedTag}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) {
+        throw new Error('Failed to highlight tag');
+      }
+    } catch (err) {
+      setError('Failed to highlight tag');
+    }
+  }, [highlightedTag, router]);
+
   const handleRemoveOption = useCallback(async (productCode: string, optionToRemove: string) => {
     try {
       const token = localStorage.getItem('adminToken');
@@ -401,6 +438,28 @@ export default function AdminDashboard() {
             <button onClick={() => setError('')} className="ml-2 text-red-500 hover:text-red-700">×</button>
           </div>
         )}
+
+        {/* Highlighted tag on main page */}
+        <div className="mb-6 p-6 bg-white rounded-lg shadow">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Highlighted Tag</h2>
+          <select
+            value={highlightedTag}
+            onChange={(e) => setHighlightedTag(e.target.value)}
+            className="text-sm"
+          >
+            {optionChoices.map(option => (
+              <option key={option.value} value={option.value}>
+          {option.label}
+              </option>
+            ))}
+          </select>
+          <button
+            className="ml-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            onClick={() => requestHighlightedTagChange()}
+          >
+            Highlight
+          </button>
+        </div>
 
         {/* Filter and Order Controls */}
         <div className="mb-6 p-6 bg-white rounded-lg shadow">

@@ -185,7 +185,7 @@ export default function ResultsPage() {
 
   return (
     <div className="w-full bg-background text-foreground flex flex-col items-center">
-      <div className="w-2/3 p-6 min-h-screen">
+      <div className="w-4/5 p-6 min-h-screen">
         {error && <p className="text-center mt-20 text-2xl font-bold text-red-500">{error}</p>}
 
         {loading ? (

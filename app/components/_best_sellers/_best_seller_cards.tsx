@@ -1,43 +1,59 @@
-import _BestSeller, { BestSeller } from "./_best_seller";
-import { _FadeIn } from "@/app/components/";
+"use client";
 
-export default function _BestSellerCards() {
-  const bestSellers: BestSeller[] = [
-    {
-      destination: "Estados Unidos",
-      photo: "/_best_sellers/statue.jpg",
-      price: 999,
-      grid: "col-span-1 row-span-2",
-      href: "",
-    },
-    {
-      destination: "Grécia",
-      photo: "/_best_sellers/greece.jpg",
-      price: 1199,
-      grid: "col-span-2 row-span-2",
-      href: "",
-    },
-    {
-      destination: "Suíça",
-      photo: "/_best_sellers/snow.jpg",
-      price: 789,
-      grid: "col-span-2 row-span-1",
-      href: "",
-    },
-    {
-      destination: "Japão",
-      photo: "/_best_sellers/temple.jpg",
-      price: 819,
-      grid: "col-span-1 row-span-1",
-      href: "",
-    },
+import BestSellerCard from "./_best_seller_card";
+import { _FadeIn } from "@/app/components/";
+import { useEffect, useState, useRef } from "react";
+import SearchProducts from "@/app/hooks/_search_products";
+
+interface Product {
+}
+
+interface PaginatedResponse {
+  token: string;
+  products: Product[];
+  hasMore: boolean;
+}
+
+export default function _BestSellerCards({ tag }: { tag: string }) {
+  const elements = [
+    { className: "col-span-2 row-span-2" }, // element 1
+    { className: "col-span-1 row-span-1" }, // element 2
+    { className: "col-span-1 row-span-1" }, // element 3
+    { className: "col-span-1 row-span-1" }, // element 4
+    { className: "col-span-1 row-span-1" }, // element 5
   ];
 
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchResults = async () => {
+      try {
+        const body: any = {};
+        body.Length = "5";
+        body.Tag = tag;
+
+        const data: PaginatedResponse = await SearchProducts(body);
+
+        setProducts(data.products);
+      } catch (err) {
+        setError("Erro ao buscar resultados.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResults();
+  }, []);
+
   return (
-    <div className="w-full h-full grid grid-cols-3 grid-rows-3 gap-16">
-      {bestSellers.map((element, index) => (
-        <_FadeIn key={index} delay={(index % 2) * 100} className={element.grid}>
-          <_BestSeller bestSeller={element} key={index} />
+    <div className="w-full h-auto grid grid-cols-4 grid-rows-2 gap-10">
+      {products.map((element, index) => (
+        <_FadeIn key={index} delay={(index % 2) * 100} className={elements[index].className}>
+          <BestSellerCard product={element} isMain={index === 0} />
         </_FadeIn>
       ))}
     </div>
