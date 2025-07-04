@@ -11,3 +11,4 @@ export { default as _BestSellers } from "./_best_sellers/_best_sellers";
 export { default as _Reviews } from "./_reviews/_reviews";
 export { default as _Newsletter } from "./_newsletter";
 export { default as _Footer } from "./_footer";
+export { default as _Product } from "./_product";

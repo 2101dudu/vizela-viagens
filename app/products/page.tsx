@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import _Product from "./_product";
+import {_Product} from "@/app/components/";
 import LoadingDots from "@/app/components/animations/loading_dots";
 import { _FadeIn } from "@/app/components/";
 import SearchProducts from "@/app/hooks/_search_products";
@@ -20,6 +20,10 @@ interface PaginatedResponse {
 
 export default function ResultsPage() {
   const params = useSearchParams();
+  const depDate = params.get("from");
+  const country = params.get("country");
+  const location = params.get("location");
+
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
   const [token, setToken] = useState<string | null>(null);
@@ -45,9 +49,6 @@ export default function ResultsPage() {
       setLoading(true);
       try {
         const body: any = {};
-        const depDate = params.get("from");
-        const country = params.get("country");
-        const location = params.get("location");
 
         if (depDate) body.DepDate = depDate;
         if (country) body.Country = country;
@@ -115,9 +116,7 @@ export default function ResultsPage() {
     if (sortPrefetching || prefetchedSortRef.current) return;
     try {
       const body: any = {};
-      const depDate = params.get("from");
-      const country = params.get("country");
-      const location = params.get("location");
+
       if (depDate) body.DepDate = depDate;
       if (country) body.Country = country;
       if (location) body.Location = location;
@@ -147,9 +146,7 @@ export default function ResultsPage() {
       setSortPrefetching(true);
       try {
         const body: any = {};
-        const depDate = params.get("from");
-        const country = params.get("country");
-        const location = params.get("location");
+
         if (depDate) body.DepDate = depDate;
         if (country) body.Country = country;
         if (location) body.Location = location;
