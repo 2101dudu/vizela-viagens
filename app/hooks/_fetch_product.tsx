@@ -1,4 +1,4 @@
-import { ApiData } from "../product/[code]/_booking_form";
+import { ApiData } from "../products/[code]/_booking_form";
 
 export interface TextContent {
     Type: string;

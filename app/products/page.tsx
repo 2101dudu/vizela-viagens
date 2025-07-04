@@ -23,6 +23,7 @@ export default function ResultsPage() {
   const depDate = params.get("from");
   const country = params.get("country");
   const location = params.get("location");
+  const tag = params.get("tag");
 
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
@@ -53,6 +54,7 @@ export default function ResultsPage() {
         if (depDate) body.DepDate = depDate;
         if (country) body.Country = country;
         if (location) body.Location = location;
+        if (tag) body.Tag = tag;
 
         const data: PaginatedResponse = await SearchProducts(body);
 
@@ -120,6 +122,7 @@ export default function ResultsPage() {
       if (depDate) body.DepDate = depDate;
       if (country) body.Country = country;
       if (location) body.Location = location;
+      if (tag) body.Tag = tag;
       body.SortBy = sortBy;
       body.SortOrder = sortOrder;
       if (priceFrom) body.PriceFrom = priceFrom;
@@ -150,8 +153,12 @@ export default function ResultsPage() {
         if (depDate) body.DepDate = depDate;
         if (country) body.Country = country;
         if (location) body.Location = location;
+        if (tag) body.Tag = tag;
         body.SortBy = sortBy;
         body.SortOrder = sortOrder;
+        if (priceFrom) body.PriceFrom = priceFrom;
+        if (priceTo) body.PriceTo = priceTo;
+        if (numDays) body.NumDays = numDays;
         const data: PaginatedResponse = await SearchProducts(body);
         setProducts(data.products);
         setToken(data.token);
@@ -231,11 +238,11 @@ export default function ResultsPage() {
               value={numDays}
               onChange={e => {
               const val = Number(e.target.value);
-              setNumDays(val < 1 ? "1" : e.target.value);
+              setNumDays(val < 0 ? "0" : e.target.value);
               }}
               className="border rounded p-1"
               placeholder="Ex: 7"
-              min="1"
+              min="0"
             />
             <button
               onMouseEnter={handleSortPrefetch}
