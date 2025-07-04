@@ -8,10 +8,10 @@ import Link from 'next/dist/client/link';
 import { FixedSizeList as List } from 'react-window';
 
 const optionChoices = [
-  { value: "Charter", label: "Charter" },
-  { value: "Praia", label: "Praia" },
-  { value: "Fim de Ano", label: "Fim de Ano" },
-  { value: "City Break", label: "City Break" },
+  { value: "charter", label: "charter" },
+  { value: "praia", label: "praia" },
+  { value: "fim_de_ano", label: "fim_de_ano" },
+  { value: "city_break", label: "city_break" },
 ];
 
 const ProductCard = React.memo(({
@@ -255,7 +255,10 @@ export default function AdminDashboard() {
   }, []);
 
   const handleAddOptions = useCallback(async (productCode: string) => {
-    const newOptions = dropdownSelections[productCode] || [];
+    const newOptions = (dropdownSelections[productCode] || []).map(tag =>
+      tag.toLowerCase().replace(/\s+/g, '_')
+    );
+
     if (newOptions.length === 0) return;
 
     setIsSubmitting(prev => ({ ...prev, [productCode]: true }));
@@ -329,7 +332,7 @@ export default function AdminDashboard() {
 
       setProducts(prev => prev.map(p => {
         if (p.product.Code === productCode) {
-          return { ...p, tags: p.tags.filter(tag => tag !== optionToRemove) };
+          return { ...p, tags: p.tags.length === 0 ? [] : p.tags.filter(tag => tag !== optionToRemove) };
         }
         return p;
       }));
