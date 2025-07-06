@@ -185,7 +185,7 @@ export default function BookingForm({ data }: BookingFormProps) {
 
     try {
       const ID: string = await FetchProductID(payload);
-      router.push(`/product/${code}/${ID}/available-services`);
+      router.push(`/products/${code}/${ID}/available-services`);
     } catch (error) {
       console.error('Error fetching product ID:', error);
     }

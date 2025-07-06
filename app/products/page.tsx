@@ -2,15 +2,13 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import {_Product} from "@/app/components/";
+import { _Product } from "@/app/components/";
 import LoadingDots from "@/app/components/animations/loading_dots";
 import { _FadeIn } from "@/app/components/";
 import SearchProducts from "@/app/hooks/_search_products";
 import FetchMoreProducts from "@/app/hooks/_search_more_products";
 
-
-interface Product {
-}
+interface Product {}
 
 interface PaginatedResponse {
   token: string;
@@ -31,7 +29,10 @@ export default function ResultsPage() {
   const [cursor, setCursor] = useState<number>(0);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
-  const prefetchedRef = useRef<{ products: Product[]; hasMore: boolean } | null>(null);
+  const prefetchedRef = useRef<{
+    products: Product[];
+    hasMore: boolean;
+  } | null>(null);
 
   const [error, setError] = useState<string | null>(null);
 
@@ -44,7 +45,6 @@ export default function ResultsPage() {
   const [priceTo, setPriceTo] = useState<string>("");
   const [numDays, setNumDays] = useState<string>("");
 
-
   useEffect(() => {
     const fetchResults = async () => {
       setLoading(true);
@@ -55,6 +55,7 @@ export default function ResultsPage() {
         if (country) body.Country = country;
         if (location) body.Location = location;
         if (tag) body.Tag = tag;
+        body.Length = 24;
 
         const data: PaginatedResponse = await SearchProducts(body);
 
@@ -123,6 +124,7 @@ export default function ResultsPage() {
       if (country) body.Country = country;
       if (location) body.Location = location;
       if (tag) body.Tag = tag;
+      body.Length = 24;
       body.SortBy = sortBy;
       body.SortOrder = sortOrder;
       if (priceFrom) body.PriceFrom = priceFrom;
@@ -132,7 +134,7 @@ export default function ResultsPage() {
       prefetchedSortRef.current = data;
     } catch (err) {
       console.log("Erro ao pré-carregar dados ordenados:", err);
-    } 
+    }
   };
 
   // Show prefetched data on click, fallback to API call if not prefetched
@@ -154,6 +156,7 @@ export default function ResultsPage() {
         if (country) body.Country = country;
         if (location) body.Location = location;
         if (tag) body.Tag = tag;
+        body.Length = 24;
         body.SortBy = sortBy;
         body.SortOrder = sortOrder;
         if (priceFrom) body.PriceFrom = priceFrom;
@@ -186,24 +189,40 @@ export default function ResultsPage() {
   return (
     <div className="w-full bg-background text-foreground flex flex-col items-center">
       <div className="w-4/5 p-6 min-h-screen">
-        {error && <p className="text-center mt-20 text-2xl font-bold text-red-500">{error}</p>}
+        {error && (
+          <p className="text-center mt-20 text-2xl font-bold text-red-500">
+            {error}
+          </p>
+        )}
 
         {loading ? (
-          <LoadingDots/>
+          <LoadingDots />
         ) : products === null ? (
-          <div className="text-center mt-20 text-2xl font-bold">Nenhum resultado encontrado.</div>
-        ) : <h1 className="text-2xl font-bold mb-4">Viagens</h1>}
+          <div className="text-center mt-20 text-2xl font-bold">
+            Nenhum resultado encontrado.
+          </div>
+        ) : (
+          <h1 className="text-2xl font-bold mb-4">Viagens</h1>
+        )}
         <div className="w-full flex flex-wrap gap-2 justify-between">
           {/* Sort/filter controls */}
           <div className="flex flex-col gap-2 w-1/5 min-w-[180px] mr-4">
             <label className="font-semibold">Ordenar por</label>
-            <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="border rounded p-1">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="border rounded p-1"
+            >
               <option value="relevance">Relevância</option>
               <option value="price">Preço</option>
               <option value="name">Nome</option>
             </select>
             <label className="font-semibold">Ordem</label>
-            <select value={sortOrder} onChange={e => setSortOrder(e.target.value)} className="border rounded p-1">
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+              className="border rounded p-1"
+            >
               <option value="asc">Ascendente</option>
               <option value="desc">Descendente</option>
             </select>
@@ -212,9 +231,9 @@ export default function ResultsPage() {
             <input
               type="number"
               value={priceFrom}
-              onChange={e => {
-              const val = Number(e.target.value);
-              setPriceFrom(val < 0 ? "0" : e.target.value);
+              onChange={(e) => {
+                const val = Number(e.target.value);
+                setPriceFrom(val < 0 ? "0" : e.target.value);
               }}
               className="border rounded p-1"
               placeholder="Mínimo"
@@ -224,9 +243,9 @@ export default function ResultsPage() {
             <input
               type="number"
               value={priceTo}
-              onChange={e => {
-              const val = Number(e.target.value);
-              setPriceTo(val < 0 ? "0" : e.target.value);
+              onChange={(e) => {
+                const val = Number(e.target.value);
+                setPriceTo(val < 0 ? "0" : e.target.value);
               }}
               className="border rounded p-1"
               placeholder="Máximo"
@@ -236,9 +255,9 @@ export default function ResultsPage() {
             <input
               type="number"
               value={numDays}
-              onChange={e => {
-              const val = Number(e.target.value);
-              setNumDays(val < 0 ? "0" : e.target.value);
+              onChange={(e) => {
+                const val = Number(e.target.value);
+                setNumDays(val < 0 ? "0" : e.target.value);
               }}
               className="border rounded p-1"
               placeholder="Ex: 7"
@@ -263,21 +282,20 @@ export default function ResultsPage() {
               </div>
             ))}
 
-          {token && hasMore && (
-            <div className="w-full text-center mt-6">
-              <button
-                onClick={handleSeeMore}
-                onMouseEnter={prefetchMore}
-                disabled={loadingMore}
-                className="px-6 py-2 rounded bg-foreground text-background hover:opacity-80 transition disabled:opacity-50"
+            {token && hasMore && (
+              <div className="w-full text-center mt-6">
+                <button
+                  onClick={handleSeeMore}
+                  onMouseEnter={prefetchMore}
+                  disabled={loadingMore}
+                  className="px-6 py-2 rounded bg-foreground text-background hover:opacity-80 transition disabled:opacity-50"
                 >
-                {loadingMore ? "A carregar..." : "Ver mais"}
-              </button>
-            </div>
-          )}
+                  {loadingMore ? "A carregar..." : "Ver mais"}
+                </button>
+              </div>
+            )}
           </div>
         </div>
-
       </div>
     </div>
   );
