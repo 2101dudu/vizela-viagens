@@ -32,7 +32,7 @@ export default function _BestSellerCards({ tag }: { tag: string }) {
     const fetchResults = async () => {
       try {
         const body: any = {};
-        body.Length = "5";
+        body.Length = 5;
         body.Tag = tag;
 
         const data: PaginatedResponse = await SearchProducts(body);
@@ -51,11 +51,17 @@ export default function _BestSellerCards({ tag }: { tag: string }) {
 
   return (
     <div className="w-full h-auto grid grid-cols-4 grid-rows-2 gap-10">
-      {products.map((element, index) => (
+      {products === null ? (
+      <div className="col-span-4 row-span-2 flex items-center justify-start">
+        Nenhum produto encontrado.
+      </div>
+      ) : (
+      products.map((element, index) => (
         <_FadeIn key={index} delay={(index % 2) * 100} className={elements[index].className}>
           <BestSellerCard product={element} isMain={index === 0} />
         </_FadeIn>
-      ))}
+        ))
+      )}
     </div>
   );
 }

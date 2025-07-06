@@ -43,9 +43,11 @@ export default function NavBar() {
               imagePrio={true}
             />
             {/* Dropdown Button */}
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setIsOpen(!isOpen)}
+            <div className="relative" ref={dropdownRef}
+              onMouseEnter={() => setIsOpen(true)}
+              onMouseLeave={() => setIsOpen(false)}
+            >
+              <div
                 className="font-semibold text-xl px-8 py-2 hover:scale-105 transition-transform duration-100 flex items-center"
               >
                 Destinos
@@ -58,11 +60,11 @@ export default function NavBar() {
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
-              </button>
+              </div>
 
               {/* Dropdown Menu */}
               {isOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-background rounded-md shadow-lg z-50">
+                <div className="absolute right-0 pt-2 w-48 bg-background rounded-md shadow-lg z-50">
                   <div className="py-1">
                     {['Fim de Ano', 'Charter', 'Praia', 'City Break'].map((option) => (
                       <button
