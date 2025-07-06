@@ -30,7 +30,7 @@ const ProductCard = React.memo(({
   onDropdownChange: (code: string, selected: any) => void,
   onAddOptions: (code: string) => void,
   onRemoveOption: (code: string, tag: string) => void,
-  onToggleEnabled: (code: string, newState: boolean) => void,
+  onToggleEnabled: (code: string) => void,
 }) => {
   const code = product.product.Code || '';
   const tags = product.tags ?? [];
@@ -74,7 +74,7 @@ const ProductCard = React.memo(({
 
         <div className="flex flex-col w-4/5">
           {enabled ? (
-            <Link href={`/product/${code}`} className="underline text-lg font-semibold text-gray-900">
+            <Link href={`/products/${code}`} className="underline text-lg font-semibold text-gray-900">
               {product.product.Name || 'Produto sem nome'}
             </Link>
           ) : (
@@ -139,7 +139,7 @@ const ProductCard = React.memo(({
       </div>
       {isHovered && (
           <button
-          onClick={() => onToggleEnabled(code, !enabled)}
+          onClick={() => onToggleEnabled(code)}
           disabled={isSubmitting[code]}
           title={enabled ? 'Disable product' : 'Enable product'}
           className={`py-2 px-4 bg-gray-50 shadow-md focus:outline-none absolute top-1/2 -translate-y-1/2 right-1 text-4xl z-10
@@ -379,7 +379,7 @@ export default function AdminDashboard() {
     }
   }, [router]);
 
-  const handleToggleEnabled = useCallback(async (productCode: string, newState: boolean) => {
+  const handleToggleEnabled = useCallback(async (productCode: string) => {
     setIsSubmitting(prev => ({ ...prev, [productCode]: true }));
     try {
       const token = localStorage.getItem('adminToken');
@@ -388,7 +388,7 @@ export default function AdminDashboard() {
         return;
       }
 
-      const url = `http://localhost:8080/api/admin/products/${productCode}/${newState ? 'enable' : 'disable'}`;
+      const url = `http://localhost:8080/api/admin/products/${productCode}/toggle`;
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -401,19 +401,19 @@ export default function AdminDashboard() {
           router.push('/admin');
           return;
         }
-        throw new Error(`Failed to ${newState ? 'enable' : 'disable'} product: ${response.status}`);
+        throw new Error(`Failed to toggle product: ${response.status}`);
       }
 
       // Confirm success, update local state:
       setProducts(prev => prev.map(p => {
         if (p.product.Code === productCode) {
-          return { ...p, enabled: newState };
+          return { ...p, enabled: !p.enabled };
         }
         return p;
       }));
     } catch (error) {
       console.error('Error toggling product enabled:', error);
-      setError(`Failed to ${newState ? 'enable' : 'disable'} product`);
+      setError(`Failed to toggle product`);
     } finally {
       setIsSubmitting(prev => ({ ...prev, [productCode]: false }));
     }
