@@ -72,7 +72,7 @@ export default function useFetchProductServices(token: string): any {
             setError("Timed out after 30 seconds");
             setLoading(false);
             clearInterval(intervalId);
-        }, 30000);
+        }, 60000);
 
         startPolling();
 

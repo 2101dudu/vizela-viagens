@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@tanstack/react-virtual": "^3.13.12",
     "@types/react-window": "^1.8.8",
     "flowbite-react": "^0.10.2",
     "framer-motion": "^12.5.0",

@@ -28,6 +28,7 @@ interface RoomType {
 
 interface BaseLocal {
   Code: string;
+  Name: string
   MinNights: string;
   MaxNights: string;
 }
@@ -70,7 +71,10 @@ export default function BookingForm({ data }: BookingFormProps) {
   // form state
   const [selectedDate, setSelectedDate] = useState(dates.length > 0 ? dates[0] : "");
   const [selectedLocale, setSelectedLocale] = useState(locales.length > 0 ? locales[0].Code : "");
-  const [selectedNights, setSelectedNights] = useState<number | "">(Number(MinNights));
+  // Track nights for each base local
+  const [selectedNights, setSelectedNights] = useState<(number | "")[]>(
+    data.BaseLocals.item.map((local) => Number(local.MinNights))
+  );
   const [numRooms, setNumRooms] = useState<number>(1);
 
   const allowedDatesSet = new Set(dates);
@@ -152,6 +156,11 @@ export default function BookingForm({ data }: BookingFormProps) {
     );
   };
 
+  // handle nights change for a specific local
+  const handleNightsChange = (idx: number, value: number) => {
+    setSelectedNights((prev) => prev.map((n, i) => (i === idx ? value : n)));
+  };
+
   // handle form submission
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault(); // Prevent default form submission
@@ -175,10 +184,10 @@ export default function BookingForm({ data }: BookingFormProps) {
         }),
       },
       baseLocals: {
-        item: [{
-          code: baseLocalsId,
-          nights: selectedNights ? String(selectedNights) : String(MinNights),
-        }]
+        item: data.BaseLocals.item.map((local, idx) => ({
+          code: local.Code,
+          nights: selectedNights[idx] ? String(selectedNights[idx]) : String(local.MinNights),
+        })),
       },
     };
 
@@ -236,25 +245,29 @@ export default function BookingForm({ data }: BookingFormProps) {
         </select>
       </div>
 
-      {/* Number of nights */}
-      <div className="flex flex-col">
-        <label className="mb-1 font-medium">Noites em Alojamento</label>
-        <select
-          value={selectedNights}
-          onChange={(e) => setSelectedNights(+e.target.value)}
-          className="h-12 rounded-xl pl-4 pr-2 text-lg border-2 border-zinc-200 bg-softBackground focus:outline-none focus:ring-highlight"
-        >
-          <option value="" disabled>Selecione as noites</option>
-          {Array.from(
-            { length: Number(MaxNights) - Number(MinNights) + 1 },
-            (_, i) => Number(MinNights) + i
-          ).map((n) => (
-            <option key={n} value={n}>
-              {n}
-            </option>
-          ))}
-        </select>
-      </div>
+      {/* Number of nights for each base local */}
+      {data.BaseLocals.item.map((local, idx) => (
+        <div className="flex flex-col" key={local.Code}>
+          <label className="mb-1 font-medium">
+            Noites em Alojamento {data.BaseLocals.item.length > 1 ? local.Name : ""}
+          </label>
+          <select
+            value={selectedNights[idx]}
+            onChange={(e) => handleNightsChange(idx, +e.target.value)}
+            className="h-12 rounded-xl pl-4 pr-2 text-lg border-2 border-zinc-200 bg-softBackground focus:outline-none focus:ring-highlight"
+          >
+            <option value="" disabled>Selecione as noites</option>
+            {Array.from(
+              { length: Number(local.MaxNights) - Number(local.MinNights) + 1 },
+              (_, i) => Number(local.MinNights) + i
+            ).map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </div>
+      ))}
 
       {/* Number of rooms */}
       <div className="flex flex-col">
