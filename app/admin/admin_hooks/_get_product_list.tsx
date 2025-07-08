@@ -9,6 +9,7 @@ export interface ProductWrapper {
   product: Product;
   tags: string[];
   enabled?: boolean;
+  visitCount?: number;
 }
 
 export const _get_product_list = async (): Promise<ProductWrapper[]> => {

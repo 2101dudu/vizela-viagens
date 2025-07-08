@@ -251,7 +251,7 @@ export default function ResultsPage() {
               placeholder="Máximo"
               min="0"
             />
-            <label className="font-semibold">Nº de Dias</label>
+            <label className="font-semibold">Nº de Noites</label>
             <input
               type="number"
               value={numDays}
