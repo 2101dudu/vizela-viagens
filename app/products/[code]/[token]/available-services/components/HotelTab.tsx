@@ -29,7 +29,7 @@ const HotelTab = React.memo<HotelTabProps>(({
   return (
     <div className="p-6">
       <h2 className="text-xl font-semibold text-gray-800 mb-4">
-        Escolha o Seu Alojamento - {currentLocation?.Name}
+        Escolha o Seu Alojamento {currentLocation?.Name === "Alojamento" ? "" : "—" + currentLocation?.Name}
       </h2>
       
       {/* Hotel Filters */}

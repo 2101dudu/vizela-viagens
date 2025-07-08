@@ -40,6 +40,9 @@ export default function AvailableServicesPage() {
   const productData = data as ProductData;
   const SessionHash = productData?.data?.SessionHash || '';
 
+  const latestRequestIdRef = React.useRef(0);
+  const [simulationData, setSimulationData] = useState<any | null>(null);
+
   // Custom hooks
   const { bookingState, setBookingState, selectedFlights, setSelectedFlights } = useBookingState();
   const { flightFilters, updateFlightFilters, updateHotelFilters, getHotelFiltersForLocation } = useFilters();
@@ -103,15 +106,17 @@ export default function AvailableServicesPage() {
 
   // Set services function - runs in background without blocking UI
   const setServices = useCallback(async () => {
-    // Don't block the UI - run in background
-    setIsSetServicesInProgress(true);
-    setSetServicesError(null);
-
     if (!bookingState.selectedFlight || Object.keys(bookingState.selectedHotels).length === 0) {
       setSetServicesError("Missing flight or hotel selection");
-      setIsSetServicesInProgress(false);
       return;
     }
+
+    const currentRequestId = ++latestRequestIdRef.current; // increment ID
+
+    setSimulToken(null);
+    setSetServicesLoading(true);
+    setIsSetServicesInProgress(true);
+    setSetServicesError(null);
 
     try {
       const flightPayload = [
@@ -155,36 +160,42 @@ export default function AvailableServicesPage() {
         HotelsSelected: { item: hotelPayload }
       };
 
-      // Call the service without awaiting to avoid blocking
-      SetProductServices(payload)
-        .then((result) => {
-          // Store the simulToken from the response
-          if (result.token !== '') {
-            setSimulToken(result.token);
-          }
-        })
-        .catch((err) => {
-          setSetServicesError(err.message || "Something went wrong while setting services");
-        })
-        .finally(() => {
-          setIsSetServicesInProgress(false);
-        });
+      const result = await SetProductServices(payload);
+
+      // only accept the result if the request ID is the latest
+      if (currentRequestId === latestRequestIdRef.current && result.token !== '') {
+        setSimulToken(result.token);
+      } else {
+        console.log('Discarded outdated setServices result');
+      }
 
     } catch (err: any) {
-      setSetServicesError(err.message || "Something went wrong while setting services");
-      setIsSetServicesInProgress(false);
+      if (currentRequestId === latestRequestIdRef.current) {
+        setSetServicesError(err.message || "Something went wrong while setting services");
+      }
+    } finally {
+      if (currentRequestId === latestRequestIdRef.current) {
+        setIsSetServicesInProgress(false);
+      }
     }
   }, [bookingState.selectedFlight, bookingState.selectedHotels, lookupMaps.roomsMap, SessionHash]);
+
 
   // Effect to trigger setServices when review tab becomes available
   React.useEffect(() => {
     const reviewTabAvailable = canAccessTab('review');
-    
-    if (reviewTabAvailable && !hasTriggeredSetServices && !isSetServicesInProgress && bookingState.selectedFlight && Object.keys(bookingState.selectedHotels).length > 0) {
-      setHasTriggeredSetServices(true);
+
+    if (reviewTabAvailable && bookingState.selectedFlight && Object.keys(bookingState.selectedHotels).length > 0) {
       setServices();
     }
-  }, [canAccessTab, hasTriggeredSetServices, isSetServicesInProgress, bookingState.selectedFlight, bookingState.selectedHotels, setServices]);
+  }, [
+    bookingState.selectedFlight, 
+    bookingState.selectedHotels, 
+    baseData.hotelLocations.length, 
+    canAccessTab,
+    setServices
+  ]);
+
 
   // Effect to clear loading state when simulToken becomes available
   React.useEffect(() => {
@@ -257,7 +268,7 @@ export default function AvailableServicesPage() {
       }
       
       const simulationData = await response.json();
-      console.log('Simulation data received:', simulationData);
+      setSimulationData(simulationData);
       
       // For now, we don't process or utilize the response data
       // This will be expanded when API response handling is needed
@@ -455,6 +466,7 @@ export default function AvailableServicesPage() {
                     formatDate={formatDate}
                     renderStarRating={renderStarRating}
                     onInsuranceChange={handleInsuranceChange}
+                    simulationData={simulationData}
                   />
                 )}
               </>

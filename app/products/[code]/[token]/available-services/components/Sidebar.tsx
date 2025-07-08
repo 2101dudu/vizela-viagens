@@ -64,7 +64,7 @@ const Sidebar = React.memo<SidebarProps>(({
               );
               return selectedRoom && (
                 <div key={locationCode} className="flex justify-between">
-                  <span>Alojamento {location?.Name}:</span>
+                  <span>Alojamento {location?.Name === "Alojamento" ? "" : location?.Name}:</span>
                   <span>€{selectedRoom.SellValue}</span>
                 </div>
               );
