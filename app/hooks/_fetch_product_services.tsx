@@ -10,7 +10,7 @@ export default function useFetchProductServices(token: string): any {
 
     const fetchData = useCallback(async () => {
         try {
-            const res = await fetch(`http://localhost:8080/api/dynamic/product/available-services/status?id=${token}`);
+            const res = await fetch(`http://192.168.1.120:8080/api/dynamic/product/available-services/status?id=${token}`);
 
             if (!res.ok) {
                 throw new Error(`Failed to fetch product: ${res.status}`);

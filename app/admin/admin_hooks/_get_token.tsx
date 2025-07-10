@@ -1,6 +1,6 @@
 export const _get_token = async (password: string): Promise<string> => {
   try {
-    const response = await fetch('http://localhost:8080/api/admin/auth', {
+    const response = await fetch('http://192.168.1.120:8080/api/admin/auth', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

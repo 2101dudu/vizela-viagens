@@ -28,7 +28,7 @@ export interface SearchProducts {
 
 
 export default async function FetchProductID(payload: SearchProducts) {
-    const res = await fetch("http://localhost:8080/api/dynamic/product/available-services", {
+    const res = await fetch("http://192.168.1.120:8080/api/dynamic/product/available-services", {
       method: "POST",
       body: JSON.stringify(payload),
       headers: { "Content-Type": "application/json" }

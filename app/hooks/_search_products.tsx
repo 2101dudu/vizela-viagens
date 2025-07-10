@@ -5,7 +5,7 @@ export interface SearchProducts {
 }
 
 export default async function SearchProducts(payload: SearchProducts) {
-  const res = await fetch("http://localhost:8080/api/search/product", {
+  const res = await fetch("http://192.168.1.120:8080/api/search/product", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

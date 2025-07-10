@@ -17,7 +17,7 @@ export const _get_product_list = async (): Promise<ProductWrapper[]> => {
     const token = localStorage.getItem('adminToken');
     if (!token) throw new Error('No authentication token found');
 
-    const response = await fetch('http://localhost:8080/api/admin/products', {
+    const response = await fetch('http://192.168.1.120:8080/api/admin/products', {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',

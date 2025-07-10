@@ -19,7 +19,7 @@ export interface ResponseData {
 
 
 export default async function FetchProduct(code: string) {
-    const res = await fetch(`http://localhost:8080/api/get/product/${code}`);
+    const res = await fetch(`http://192.168.1.120:8080/api/get/product/${code}`);
     if (!res.ok) throw new Error("Failed to fetch product");
 
     const product = await res.json();

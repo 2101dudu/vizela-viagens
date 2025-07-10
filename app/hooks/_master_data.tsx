@@ -24,7 +24,7 @@ export function useMasterData() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const res = await fetch("http://localhost:8080/api/get/master-data");
+      const res = await fetch("http://192.168.1.120:8080/api/get/master-data");
       const json = await res.json();
       let countries: Country[] = json.SearchProductMasterDataArray.CountriesArray.item;
       let locations: Location[] = json.SearchProductMasterDataArray.LocationsArray.item;
