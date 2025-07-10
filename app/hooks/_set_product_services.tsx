@@ -1,6 +1,6 @@
 export interface SetServicesPayload {  
     SessionHash: string;
-    FlightsSelected: {
+    FlightsSelectedSuperBB: {
         item: Array<{
             OptionCode: string;
             SegmentLists: {
