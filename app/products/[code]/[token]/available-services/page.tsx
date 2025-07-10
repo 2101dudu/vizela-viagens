@@ -258,7 +258,7 @@ export default function AvailableServicesPage() {
     try {
       setHasPrefetchedSimulation(true);
       
-      const response = await fetch(`http://localhost:8080/api/dynamic/product/get-simulation?token=${simulToken}`);
+      const response = await fetch(`http://192.168.1.120:8080/api/dynamic/product/get-simulation?token=${simulToken}`);
       
       if (!response.ok) {
         console.error(`Failed to fetch simulation data: ${response.status}`);
@@ -484,6 +484,7 @@ export default function AvailableServicesPage() {
           isDone={isDone}
           renderStarRating={renderStarRating}
           onConfirmButtonHover={getSimulationData}
+          token={simulToken}
         />
       </div>
     </div>
