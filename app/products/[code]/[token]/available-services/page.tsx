@@ -71,6 +71,7 @@ export default function AvailableServicesPage() {
   const [hasTriggeredSetServices, setHasTriggeredSetServices] = useState(false);
   const [isSetServicesInProgress, setIsSetServicesInProgress] = useState(false);
   const [hasPrefetchedSimulation, setHasPrefetchedSimulation] = useState(false);
+  const [isSimulationPrefetchInProgress, setIsSimulationPrefetchInProgress] = useState(false);
 
   // Hotel room selection handler
   const handleHotelRoomSelection = useCallback((hotelCode: string, roomCode: string, roomNum: string) => {
@@ -156,7 +157,7 @@ export default function AvailableServicesPage() {
 
       const payload: SetServicesPayload = {
         SessionHash: SessionHash,
-        FlightsSelected: { item: flightPayload },
+        FlightsSelectedSuperBB: { item: flightPayload },
         HotelsSelected: { item: hotelPayload }
       };
 
@@ -176,6 +177,7 @@ export default function AvailableServicesPage() {
     } finally {
       if (currentRequestId === latestRequestIdRef.current) {
         setIsSetServicesInProgress(false);
+        console.log('setServices completed');
       }
     }
   }, [bookingState.selectedFlight, bookingState.selectedHotels, lookupMaps.roomsMap, SessionHash]);
@@ -203,6 +205,16 @@ export default function AvailableServicesPage() {
       setSetServicesLoading(false);
     }
   }, [simulToken, setServicesLoading]);
+
+  // Effect to reset prefetch flag when simulToken changes
+  React.useEffect(() => {
+    if (simulToken) {
+      console.log('simulToken changed, resetting prefetch flag and clearing simulation data');
+      setHasPrefetchedSimulation(false);
+      setIsSimulationPrefetchInProgress(false);
+      setSimulationData(null); // Clear previous simulation data
+    }
+  }, [simulToken]);
 
   // Tab switching
   const switchTab = useCallback((tab: string) => {
@@ -234,19 +246,43 @@ export default function AvailableServicesPage() {
 
   // Function to get simulation data with improved hover prefetch
   const getSimulationData = useCallback(async () => {
-    // Don't prefetch if already done
-    if (hasPrefetchedSimulation) {
+    console.log('getSimulationData called - hasPrefetchedSimulation:', hasPrefetchedSimulation, 'simulToken:', simulToken, 'isSetServicesInProgress:', isSetServicesInProgress, 'isSimulationPrefetchInProgress:', isSimulationPrefetchInProgress);
+    
+    // Don't prefetch if already done or if a prefetch is already in progress
+    if (hasPrefetchedSimulation || isSimulationPrefetchInProgress) {
+      console.log('Already prefetched or prefetch in progress, skipping...');
       return;
     }
 
-    // If simulToken is not available yet but setServices is in progress, wait a bit and retry
+    // If simulToken is not available yet but setServices is in progress, keep polling until it's ready
     if (!simulToken && isSetServicesInProgress) {
-      // Retry after a short delay only once
-      setTimeout(() => {
-        if (simulToken && !hasPrefetchedSimulation) {
-          getSimulationData();
-        }
-      }, 500);
+      console.log('simulToken not ready yet, setServices in progress - will poll for token...');
+      
+      // Poll for simulToken with increasing intervals (500ms, 1s, 1.5s, 2s, etc.) up to 20 seconds total
+      let attempts = 0;
+      const maxAttempts = 20; // 20 attempts over ~20 seconds
+      
+      const pollForToken = () => {
+        attempts++;
+        const delay = Math.min(500 + (attempts * 500), 2000); // Increasing delay, max 2s
+        
+        setTimeout(() => {
+          console.log(`Polling attempt ${attempts} for simulToken...`);
+          
+          // Check if token is now available and we haven't already prefetched
+          if (simulToken && !hasPrefetchedSimulation) {
+            console.log('simulToken now available, proceeding with prefetch');
+            getSimulationData();
+          } else if (attempts < maxAttempts && isSetServicesInProgress && !simulToken) {
+            // Continue polling if still in progress and no token yet
+            pollForToken();
+          } else {
+            console.log('Stopped polling for simulToken:', { attempts, simulToken: !!simulToken, isSetServicesInProgress, hasPrefetchedSimulation });
+          }
+        }, delay);
+      };
+      
+      pollForToken();
       return;
     }
     
@@ -256,6 +292,8 @@ export default function AvailableServicesPage() {
     }
     
     try {
+      console.log('Starting simulation data prefetch for token:', simulToken);
+      setIsSimulationPrefetchInProgress(true);
       setHasPrefetchedSimulation(true);
       
       const response = await fetch(`http://192.168.1.120:8080/api/dynamic/product/get-simulation?token=${simulToken}`);
@@ -264,11 +302,13 @@ export default function AvailableServicesPage() {
         console.error(`Failed to fetch simulation data: ${response.status}`);
         // Reset prefetch flag on error so it can be retried
         setHasPrefetchedSimulation(false);
+        setIsSimulationPrefetchInProgress(false);
         return;
       }
       
       const simulationData = await response.json();
       setSimulationData(simulationData);
+      console.log('Successfully prefetched simulation data');
       
       // For now, we don't process or utilize the response data
       // This will be expanded when API response handling is needed
@@ -277,8 +317,24 @@ export default function AvailableServicesPage() {
       console.error('Error fetching simulation data:', error);
       // Reset prefetch flag on error so it can be retried
       setHasPrefetchedSimulation(false);
+      setIsSimulationPrefetchInProgress(false);
+    } finally {
+      setIsSimulationPrefetchInProgress(false);
     }
-  }, [simulToken, isSetServicesInProgress, hasPrefetchedSimulation]);
+  }, [simulToken, isSetServicesInProgress, hasPrefetchedSimulation, isSimulationPrefetchInProgress]);
+
+  // Effect to auto-trigger simulation prefetch when simulToken becomes available
+  React.useEffect(() => {
+    if (simulToken && !hasPrefetchedSimulation && !isSimulationPrefetchInProgress) {
+      console.log('Auto-triggering simulation prefetch after token became available');
+      // Small delay to allow state updates to settle
+      setTimeout(() => {
+        if (!hasPrefetchedSimulation && !isSimulationPrefetchInProgress) {
+          getSimulationData();
+        }
+      }, 100);
+    }
+  }, [simulToken, hasPrefetchedSimulation, isSimulationPrefetchInProgress, getSimulationData]);
 
   // Insurance change handler
   const handleInsuranceChange = useCallback((insuranceId: string) => {

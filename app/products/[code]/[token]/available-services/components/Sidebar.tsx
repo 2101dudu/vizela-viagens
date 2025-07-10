@@ -303,7 +303,7 @@ const Sidebar = React.memo<SidebarProps>(({
                 <>
                   <button
                     disabled={true}
-                    className="cursor-not-allowed w-full bg-gray-300 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                    className="cursor-not-allowed w-full bg-gray-300 text-white font-medium py-3 px-4 rounded-lg transition-colors"
                   >
                     ← Voltar
                   </button>
@@ -373,17 +373,23 @@ const Sidebar = React.memo<SidebarProps>(({
                     className="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
                   >
                     ← Voltar
-                  </button>              <button
-                onClick={openModal}
-                onMouseEnter={() => {
-                  if (onConfirmButtonHover) {
-                    onConfirmButtonHover();
-                  }
-                }}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
-              >
-                Confirmar
-              </button>
+                  </button>
+                  <button
+                    onClick={openModal}
+                    disabled={!token}
+                    onMouseEnter={() => {
+                      if (onConfirmButtonHover) {
+                        onConfirmButtonHover();
+                      }
+                    }}
+                    className={`w-full font-medium py-3 px-4 rounded-lg transition-colors ${
+                      !token
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-green-600 hover:bg-green-700 text-white'
+                    }`}
+                  >
+                    Confirmar
+                  </button>
                 </>
               )}
             </div>
