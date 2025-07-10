@@ -40,7 +40,7 @@ export default function TagHighlightTab() {
         return;
       }
       
-      const res = await fetch(`http://localhost:8080/api/admin/page/highlight/${highlightedTag}`, {
+      const res = await fetch(`http://192.168.1.120:8080/api/admin/page/highlight/${highlightedTag}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
