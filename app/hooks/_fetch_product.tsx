@@ -23,8 +23,6 @@ export default async function FetchProduct(code: string) {
     if (!res.ok) throw new Error("Failed to fetch product");
 
     const product = await res.json();
-    
-    console.log("Fetched product:", product);
 
     if (!product || !product.data) {
         throw new Error("Product not found");

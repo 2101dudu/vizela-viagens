@@ -22,6 +22,12 @@ export default function useFetchProductServices(token: string): any {
                 throw new Error("Product not found");
             }
 
+            if (product.status === "error") {
+                setError("Erro interno. Tente novamente.");
+                setLoading(false);
+                return true;
+            }
+
             if (product.status === "done" || product.isDone === true) {
                 setData(product);
                 setIsDone(true);
@@ -67,9 +73,9 @@ export default function useFetchProductServices(token: string): any {
             }
         };
 
-        // Start 30s timeout timer
+        // Start 60s timeout timer
         timeoutId = setTimeout(() => {
-            setError("Timed out after 30 seconds");
+            setError("Timed out after 60 seconds");
             setLoading(false);
             clearInterval(intervalId);
         }, 60000);

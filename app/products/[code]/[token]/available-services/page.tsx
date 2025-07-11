@@ -33,7 +33,7 @@ import { calculateLocationStarRange } from './utils/dataProcessing';
 export default function AvailableServicesPage() {
   const params = useParams();
   const router = useRouter();
-  const code = params.code;
+  const code = params.code as string;
   const token = params.token as string;
 
   const { data, loading, error, isDone } = useFetchProductServices(token);
@@ -161,7 +161,7 @@ export default function AvailableServicesPage() {
         HotelsSelected: { item: hotelPayload }
       };
 
-      const result = await SetProductServices(payload);
+      const result = await SetProductServices(code, payload);
 
       // only accept the result if the request ID is the latest
       if (currentRequestId === latestRequestIdRef.current && result.token !== '') {
@@ -173,6 +173,7 @@ export default function AvailableServicesPage() {
     } catch (err: any) {
       if (currentRequestId === latestRequestIdRef.current) {
         setSetServicesError(err.message || "Something went wrong while setting services");
+        setSimulToken(null);
       }
     } finally {
       if (currentRequestId === latestRequestIdRef.current) {
@@ -309,10 +310,6 @@ export default function AvailableServicesPage() {
       const simulationData = await response.json();
       setSimulationData(simulationData);
       console.log('Successfully prefetched simulation data');
-      
-      // For now, we don't process or utilize the response data
-      // This will be expanded when API response handling is needed
-      
     } catch (error) {
       console.error('Error fetching simulation data:', error);
       // Reset prefetch flag on error so it can be retried
@@ -523,6 +520,7 @@ export default function AvailableServicesPage() {
                     renderStarRating={renderStarRating}
                     onInsuranceChange={handleInsuranceChange}
                     simulationData={simulationData}
+                    setServicesError={setServicesError}
                   />
                 )}
               </>
