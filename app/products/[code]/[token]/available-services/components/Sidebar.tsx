@@ -19,6 +19,7 @@ interface FormData {
   email: string;
   phone: string;
   dateOfBirth: string;
+  wantsNewsletter: string;
 }
 
 interface FormErrors {
@@ -46,7 +47,8 @@ const Sidebar = React.memo<SidebarProps>(({
     surname: '',
     email: '',
     phone: '',
-    dateOfBirth: ''
+    dateOfBirth: '',
+    wantsNewsletter: 'false'
   });
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -145,14 +147,17 @@ const Sidebar = React.memo<SidebarProps>(({
   };
 
   const isFormValid = (): boolean => {
-    // Check if all fields are filled
-    const allFieldsFilled = Object.values(formData).every(value => value.trim() !== '');
+    // Check if all required fields are filled (excluding wantsNewsletter which is optional)
+    const requiredFields = ['name', 'surname', 'email', 'phone', 'dateOfBirth'];
+    const allRequiredFieldsFilled = requiredFields.every(field => 
+      formData[field as keyof FormData].toString().trim() !== ''
+    );
     
     // Check if there are no validation errors
     const noErrors = Object.values(formErrors).every(error => !error);
     
     // Check if terms are accepted
-    return allFieldsFilled && noErrors && acceptedTerms;
+    return allRequiredFieldsFilled && noErrors && acceptedTerms;
   };
 
   const validateAllFields = (): boolean => {
@@ -194,7 +199,8 @@ const Sidebar = React.memo<SidebarProps>(({
           surname: '',
           email: '',
           phone: '',
-          dateOfBirth: ''
+          dateOfBirth: '',
+          wantsNewsletter: 'false'
         });
         setFormErrors({});
         setAcceptedTerms(false);
@@ -219,7 +225,8 @@ const Sidebar = React.memo<SidebarProps>(({
       surname: '',
       email: '',
       phone: '',
-      dateOfBirth: ''
+      dateOfBirth: '',
+      wantsNewsletter: 'false'
     });
     setFormErrors({});
     setAcceptedTerms(false);
@@ -501,8 +508,22 @@ const Sidebar = React.memo<SidebarProps>(({
               </div>
             </div>
 
-            {/* Terms and Conditions */}
+            {/* Newsletter Subscription */}
             <div className="flex items-start space-x-2 mt-6">
+              <input
+                type="checkbox"
+                id="newsletter"
+                checked={formData.wantsNewsletter === 'true'}
+                onChange={e => setFormData(prev => ({ ...prev, wantsNewsletter: e.target.checked ? 'true' : 'false' }))}
+                className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label htmlFor="newsletter" className="text-sm text-gray-700">
+                Quero subscrever a newsletter para receber ofertas especiais e novidades
+              </label>
+            </div>
+
+            {/* Terms and Conditions */}
+            <div className="flex items-start space-x-2 mt-4">
               <input
                 type="checkbox"
                 id="terms"
@@ -520,6 +541,7 @@ const Sidebar = React.memo<SidebarProps>(({
                 >
                   termos e condições
                 </a>
+                {' '}*
               </label>
             </div>
 
