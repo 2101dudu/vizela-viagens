@@ -211,7 +211,7 @@ export interface DynResServices {
 }
 
 export interface DynResServicesArray {
-  Items: DynResServices[];
+  item: DynResServices[];
 }
 
 export interface DynResCalcs {
@@ -227,7 +227,7 @@ export interface DynResCalcs {
 }
 
 export interface DynResCalcsArray {
-  Items: DynResCalcs[];
+  item: DynResCalcs[];
 }
 
 export interface DynResRemarks {
@@ -238,7 +238,7 @@ export interface DynResRemarks {
 }
 
 export interface DynResRemarksArray {
-  Items: DynResRemarks[];
+  item: DynResRemarks[];
 }
 
 export interface DynHotelWarnings {
@@ -246,7 +246,7 @@ export interface DynHotelWarnings {
 }
 
 export interface DynHotelWarningsArray {
-  Items: DynHotelWarnings[];
+  item: DynHotelWarnings[];
 }
 
 export interface DynResumeCalcs {
@@ -263,7 +263,7 @@ export interface DynResumeCalcs {
 }
 
 export interface DynResumeCalcsArray {
-  Items: DynResumeCalcs[];
+  item: DynResumeCalcs[];
 }
 
 export interface DynExtraInfo {
@@ -278,11 +278,11 @@ export interface DynExtraInfo {
 }
 
 export interface DynExtraInfoArray {
-  Items: DynExtraInfo[];
+  item: DynExtraInfo[];
 }
 
 export interface DynListArray {
-  Items: any[];
+  item: any[];
 }
 
 export interface DynResPaxs {
@@ -295,7 +295,7 @@ export interface DynResPaxs {
 }
 
 export interface DynResPaxsArray {
-  Items: DynResPaxs[];
+  item: DynResPaxs[];
 }
 
 export interface DynCharge {
@@ -304,7 +304,7 @@ export interface DynCharge {
 }
 
 export interface DynChargeArray {
-  Items: DynCharge[];
+  item: DynCharge[];
 }
 
 export interface DynDeadline {
@@ -312,7 +312,7 @@ export interface DynDeadline {
 }
 
 export interface DynDeadlineArray {
-  Items: DynDeadline[];
+  item: DynDeadline[];
 }
 
 export interface DynCancelPenalties {
@@ -321,7 +321,7 @@ export interface DynCancelPenalties {
 }
 
 export interface DynCancelPenaltiesArray {
-  Items: DynCancelPenalties[];
+  item: DynCancelPenalties[];
 }
 
 export interface DynPenaltiesInfo {
@@ -330,7 +330,7 @@ export interface DynPenaltiesInfo {
 }
 
 export interface DynPenaltiesInfoArray {
-  Items: DynPenaltiesInfo[];
+  item: DynPenaltiesInfo[];
 }
 
 export interface DynPenaltiesDetail {
@@ -338,7 +338,7 @@ export interface DynPenaltiesDetail {
 }
 
 export interface DynPenaltiesDetailArray {
-  Items: DynPenaltiesDetail[];
+  item: DynPenaltiesDetail[];
 }
 
 export interface DynRoomsPenalties {
@@ -349,7 +349,7 @@ export interface DynRoomsPenalties {
 }
 
 export interface DynRoomsPenaltiesArray {
-  Items: DynRoomsPenalties[];
+  item: DynRoomsPenalties[];
 }
 
 export interface DynPolicies {
@@ -363,7 +363,7 @@ export interface DynPolicies {
 }
 
 export interface DynPoliciesArray {
-  Items: DynPolicies[];
+  item: DynPolicies[];
 }
 
 export interface Error {
@@ -372,7 +372,7 @@ export interface Error {
 }
 
 export interface ErrorArray {
-  Items: Error[];
+  item: Error[];
 }
 
 export interface ErrorStruct {
