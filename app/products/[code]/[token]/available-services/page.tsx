@@ -479,8 +479,8 @@ export default function AvailableServicesPage() {
                 flightFilters={flightFilters}
                 onFiltersChange={updateFlightFilters}
                 layoverRange={ranges.layoverRange}
-                token={productData?.token || ''}
-                hasMore={productData?.hasMore || false}
+                token={productData?.flightsToken || ''}
+                hasMore={productData?.hasMoreFlights || false}
               />
             )}
 
@@ -496,6 +496,8 @@ export default function AvailableServicesPage() {
                 hotelFilters={currentLocationFilters}
                 onFiltersChange={(filters) => updateHotelFilters(filteredData.currentLocation?.Code || '', filters)}
                 starRange={calculateLocationStarRange(filteredData.currentLocation)}
+                token={productData?.hotelsToken || ''}
+                hasMore={productData?.hasMoreHotels || false}
               />
             )}
 

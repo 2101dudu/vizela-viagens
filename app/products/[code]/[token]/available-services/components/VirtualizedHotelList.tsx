@@ -1,5 +1,4 @@
 import React from 'react';
-import { FixedSizeList as List, ListChildComponentProps } from 'react-window';
 import { Hotel } from '../types';
 import HotelCard from './HotelCard';
 
@@ -18,31 +17,19 @@ const VirtualizedHotelList: React.FC<VirtualizedHotelListProps> = ({
   renderStarRating, 
   formatDate 
 }) => {
-  const Row = ({ index, style }: ListChildComponentProps) => {
-    const hotel = hotels[index];
-
-    return (
-      <div style={style}>
+  return (
+    <div className="w-full">
+      {hotels.map((hotel, index) => (
         <HotelCard 
+          key={hotel.Code || index}
           hotel={hotel}
           selectedHotel={selectedHotel}
           onRoomSelection={onRoomSelection}
           renderStarRating={renderStarRating}
           formatDate={formatDate}
         />
-      </div>
-    );
-  };
-
-  return (
-    <List
-      height={800} // height of the entire list container (adjust as needed)
-      itemCount={hotels.length}
-      itemSize={700} // height of each item (you may need to tweak this)
-      width="100%"
-    >
-      {Row}
-    </List>
+      ))}
+    </div>
   );
 };
 
