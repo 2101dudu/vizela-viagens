@@ -479,6 +479,8 @@ export default function AvailableServicesPage() {
                 flightFilters={flightFilters}
                 onFiltersChange={updateFlightFilters}
                 layoverRange={ranges.layoverRange}
+                token={productData?.token || ''}
+                hasMore={productData?.hasMore || false}
               />
             )}
 
