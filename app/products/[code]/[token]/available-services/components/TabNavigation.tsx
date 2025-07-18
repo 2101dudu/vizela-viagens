@@ -18,7 +18,7 @@ const TabNavigation = React.memo<TabNavigationProps>(({
 }) => (
   <div className="bg-white rounded-lg shadow-lg mb-6">
     <div className="border-b border-gray-200">
-      <nav className="flex space-x-8 px-6">
+      <nav className="flex space-x-8 px-6 justify-between">
         {/* Flight Tab */}
         <button
           onClick={() => switchTab('flights')}

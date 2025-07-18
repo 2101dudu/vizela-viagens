@@ -25,10 +25,9 @@ const HotelCard = React.memo<HotelCardProps>(({
 
   return (
     <div className="border rounded-lg overflow-hidden">
-      <div className="md:flex">
-        {/* Hotel Image - Fixed size */}
-        <div className="md:w-1/3 md:flex-shrink-0">
-          <div className="relative h-64 md:h-80">
+      <div className="">
+        <div className="md:w-full flex">
+          <div className="relative h-64 w-80">
             <img
               src={hotel.Image === "" ? "/fallback.png" : hotel.Image}
               alt={hotel.Name}
@@ -39,42 +38,47 @@ const HotelCard = React.memo<HotelCardProps>(({
               }}
             />
           </div>
-        </div>
-        
-        {/* Hotel Details */}
-        <div className="md:w-4/5 p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">{hotel.Name}</h3>
-              {renderStarRating(hotel.Rating)}
-              <div className="flex items-center mt-2 text-sm text-gray-600">
-                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                </svg>
-                <span>{hotel.Address}</span>
+
+          <div className="flex flex-col justify-between mt-8 mx-8 w-3/5">
+            <div className="flex">
+              <div className="w-full">
+                <div className="flex justify-between">
+                  <div className="flex flex-col">
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">{hotel.Name}</h3>
+                    {renderStarRating(hotel.Rating)}
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-gray-500">A partir de</div>
+                    <div className="text-2xl font-bold text-green-600">€{hotel.PriceFrom}</div>
+                  </div>
+                </div>
+                <div className="flex items-center mt-8 text-sm text-gray-600">
+                  <svg className="ml-1.5 w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                  </svg>
+                  <span>{hotel.Address}</span>
+                </div>
                 <a
                   href={`https://www.google.com/maps?q=${hotel.GpsLatitude},${hotel.GpsLongitude}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="ml-2 text-blue-600 hover:text-blue-800"
+                  className="ml-2 text-blue-600 hover:text-blue-800 mt-2 text-sm"
                 >
-                  Ver no mapa
+                 [ Ver no mapa ]
                 </a>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-sm text-gray-500">A partir de</div>
-              <div className="text-2xl font-bold text-green-600">€{hotel.PriceFrom}</div>
+            <div className="ml-2 text-sm text-gray-600">
+              <div className="flex items-center space-x-4">
+                <span>Check-in: {formatDate(hotel.CheckIn)}</span>
+                <span>Check-out: {formatDate(hotel.CheckOut)}</span>
+              </div>
             </div>
           </div>
-          
-          <div className="text-sm text-gray-600 mb-4">
-            <div className="flex items-center space-x-4">
-              <span>Check-in: {formatDate(hotel.CheckIn)}</span>
-              <span>Check-out: {formatDate(hotel.CheckOut)}</span>
-            </div>
-          </div>
-
+        </div>
+        
+        {/* Hotel Details */}
+        <div className="md:w-full p-6">
           {/* Room Selection - Scrollable Container */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
