@@ -27,6 +27,8 @@ const VirtualizedHotelList: React.FC<VirtualizedHotelListProps> = ({
           onRoomSelection={onRoomSelection}
           renderStarRating={renderStarRating}
           formatDate={formatDate}
+          token={hotel.Token}
+          hasMore={hotel.HasMore}
         />
       ))}
     </div>

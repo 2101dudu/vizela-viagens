@@ -1,7 +1,8 @@
-import React from 'react';
-import { Hotel } from '../types';
+import React, { useState } from 'react';
+import { Hotel, RoomWithGroup } from '../types';
 import VirtualizedRoomList from './VirtualizedRoomList';
 import RoomCard from './RoomCard';
+import FetchMoreRooms from '../hooks/useFetchMoreRooms';
 
 interface HotelCardProps {
   hotel: Hotel;
@@ -9,6 +10,8 @@ interface HotelCardProps {
   onRoomSelection: (hotelCode: string, roomCode: string, roomNum: string) => void;
   renderStarRating: (rating: string) => React.ReactNode;
   formatDate: (date: string) => string;
+  token: string;
+  hasMore: boolean;
 }
 
 const HotelCard = React.memo<HotelCardProps>(({ 
@@ -16,12 +19,55 @@ const HotelCard = React.memo<HotelCardProps>(({
   selectedHotel, 
   onRoomSelection, 
   renderStarRating, 
-  formatDate 
+  formatDate,
+  token,
+  hasMore
 }) => {
   // Flatten all rooms from all room groups for this hotel
-  const allRooms = hotel.RoomsOccupancy.item.flatMap(roomGroup => 
+  const initialRooms = hotel.RoomsOccupancy.item.flatMap(roomGroup => 
     roomGroup.Rooms.item.map(room => ({ ...room, roomGroup: roomGroup.RoomGroup }))
   );
+
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [allRooms, setAllRooms] = useState<RoomWithGroup[]>(initialRooms);
+  const [hasMoreRooms, setHasMoreRooms] = useState(hasMore);
+  const [fetchedRooms, setFetchedRooms] = useState<RoomWithGroup[]>([]);
+  const [hasFetched, setHasFetched] = useState(false);
+  const [hasRoomsToShow, setHasRoomsToShow] = useState(false);
+
+  // Update local state when props change
+  React.useEffect(() => {
+    const newInitialRooms = hotel.RoomsOccupancy.item.flatMap(roomGroup => 
+      roomGroup.Rooms.item.map(room => ({ ...room, roomGroup: roomGroup.RoomGroup }))
+    );
+    setAllRooms(newInitialRooms);
+    setHasMoreRooms(hasMore);
+  }, [hotel, hasMore]);
+
+  const fetchMoreRooms = async () => {
+    if (isLoadingMore || hasFetched) return;
+    
+    setIsLoadingMore(true);
+    try {
+      const result = await FetchMoreRooms(token, allRooms.length, 5);
+      setFetchedRooms(result.rooms);
+      setHasFetched(true);
+      setHasMoreRooms(result.hasMore);
+      setHasRoomsToShow(true);
+    } catch (error) {
+      console.error('Error fetching more rooms:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  const showMoreRooms = () => {
+    if (hasFetched) {
+      setAllRooms(prevRooms => [...prevRooms, ...fetchedRooms]);
+      setHasFetched(false);
+      setHasRoomsToShow(false);
+    }
+  };
 
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -87,35 +133,33 @@ const HotelCard = React.memo<HotelCardProps>(({
                 {allRooms.length} quarto{allRooms.length !== 1 ? 's' : ''} disponível{allRooms.length !== 1 ? 'is' : ''}
               </span>
             </div>
-            
-            {/* Scrollable room container - max 6 rooms visible */}
             <div className="border border-gray-200 rounded-lg">
-              {allRooms.length > 10 ? (
-                // Use virtualization for large room lists
-                <VirtualizedRoomList 
-                  allRooms={allRooms}
-                  hotelCode={hotel.Code}
-                  selectedHotel={selectedHotel}
-                  onRoomSelection={onRoomSelection}
-                />
-              ) : (
-                // Use regular scrolling for smaller lists
-                <div className="max-h-80 overflow-y-auto">
-                  <div className="space-y-2 p-2">
-                    {allRooms.map((room) => (
-                      <RoomCard 
-                        key={`${hotel.Code}-${room.Code}-${room.RoomNum}`}
-                        room={room}
-                        hotelCode={hotel.Code}
-                        isSelected={
-                          selectedHotel?.hotelCode === hotel.Code &&
-                          selectedHotel?.roomCode === room.Code &&
-                          selectedHotel?.roomNum === room.RoomNum
-                        }
-                        onSelect={() => onRoomSelection(hotel.Code, room.Code, room.RoomNum)}
-                      />
-                    ))}
-                  </div>
+              <div className="space-y-2 p-2">
+                {allRooms.map((room) => (
+                  <RoomCard 
+                    key={`${hotel.Code}-${room.Code}-${room.RoomNum}`}
+                    room={room}
+                    hotelCode={hotel.Code}
+                    isSelected={
+                      selectedHotel?.hotelCode === hotel.Code &&
+                      selectedHotel?.roomCode === room.Code &&
+                      selectedHotel?.roomNum === room.RoomNum
+                    }
+                    onSelect={() => onRoomSelection(hotel.Code, room.Code, room.RoomNum)}
+                  />
+                ))}
+              </div>
+              
+              {/* Load More Button */}
+              {(hasMoreRooms || hasRoomsToShow) && (
+                <div className="flex justify-center p-4 border-t border-gray-200">
+                  <button
+                    onMouseEnter={fetchMoreRooms}
+                    onClick={showMoreRooms}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 text-sm"
+                  >
+                    {'Ver mais'}
+                  </button>
                 </div>
               )}
             </div>

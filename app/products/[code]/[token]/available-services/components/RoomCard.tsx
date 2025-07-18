@@ -12,7 +12,7 @@ const RoomCard = React.memo<RoomCardProps>(({
   room, 
   hotelCode, 
   isSelected, 
-  onSelect 
+  onSelect,
 }) => (
   <div
     className={`border rounded-lg p-3 cursor-pointer transition-colors ${
