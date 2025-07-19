@@ -113,8 +113,6 @@ export interface DynInsurance {
 export interface ProductData {
   flightsToken: string;
   hasMoreFlights: boolean;
-  hotelsToken: string;
-  hasMoreHotels: boolean;
   data: {
     SessionHash: string;
     Code: string;
@@ -134,6 +132,8 @@ export interface ProductData {
       item: Array<{
         Code: string;
         Name: string;
+        Token: string;
+        HasMore: boolean;
         HotelOption: {
           item: Hotel[];
         };

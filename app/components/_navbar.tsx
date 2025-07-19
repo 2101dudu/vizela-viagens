@@ -36,8 +36,8 @@ export default function NavBar() {
           <div className="flex justify-between items-center gap-5">
             <_Button
               href="/"
-              imageSrc="/_review/placeholder.svg"
-              imageAlt="Next.js logo"
+              imageSrc="/logo_square.svg"
+              imageAlt="VizelaViagens logo"
               imageW={50}
               imageH={50}
               imagePrio={true}

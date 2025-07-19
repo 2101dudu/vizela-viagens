@@ -1,5 +1,5 @@
 import React from 'react';
-import { Hotel } from '../types';
+import { Hotel, RoomWithGroup } from '../types';
 import HotelCard from './HotelCard';
 
 interface VirtualizedHotelListProps {
@@ -8,6 +8,7 @@ interface VirtualizedHotelListProps {
   onRoomSelection: (hotelCode: string, roomCode: string, roomNum: string) => void;
   renderStarRating: (rating: string) => React.ReactNode;
   formatDate: (date: string) => string;
+  onNewRoomsFetched?: (newRooms: RoomWithGroup[], hotelCode: string) => void;
 }
 
 const VirtualizedHotelList: React.FC<VirtualizedHotelListProps> = ({ 
@@ -15,7 +16,8 @@ const VirtualizedHotelList: React.FC<VirtualizedHotelListProps> = ({
   selectedHotel, 
   onRoomSelection, 
   renderStarRating, 
-  formatDate 
+  formatDate,
+  onNewRoomsFetched 
 }) => {
   return (
     <div className="w-full">
@@ -29,6 +31,7 @@ const VirtualizedHotelList: React.FC<VirtualizedHotelListProps> = ({
           formatDate={formatDate}
           token={hotel.Token}
           hasMore={hotel.HasMore}
+          onNewRoomsFetched={onNewRoomsFetched}
         />
       ))}
     </div>

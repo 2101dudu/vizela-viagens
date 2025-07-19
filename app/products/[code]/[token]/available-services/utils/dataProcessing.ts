@@ -34,6 +34,46 @@ export const createLookupMaps = (
   return { flightOptionsMap, hotelLocationMaps, roomsMap };
 };
 
+// Update lookup maps with newly fetched rooms
+export const updateLookupMapsWithNewRooms = (
+  lookupMaps: LookupMaps,
+  newRooms: any[],
+  hotelCode: string
+): LookupMaps => {
+  const updatedRoomsMap = new Map(lookupMaps.roomsMap);
+  
+  newRooms.forEach(room => {
+    const key = `${hotelCode}-${room.Code}-${room.RoomNum}`;
+    updatedRoomsMap.set(key, {
+      ...room,
+      hotelCode: hotelCode,
+      roomGroup: room.roomGroup
+    });
+  });
+  
+  return {
+    ...lookupMaps,
+    roomsMap: updatedRoomsMap
+  };
+};
+
+// Update lookup maps with newly fetched flights
+export const updateLookupMapsWithNewFlights = (
+  lookupMaps: LookupMaps,
+  newFlights: FlightOption[]
+): LookupMaps => {
+  const updatedFlightOptionsMap = new Map(lookupMaps.flightOptionsMap);
+  
+  newFlights.forEach(flight => {
+    updatedFlightOptionsMap.set(flight.OptionCode, flight);
+  });
+  
+  return {
+    ...lookupMaps,
+    flightOptionsMap: updatedFlightOptionsMap
+  };
+};
+
 // Calculate ranges for filters
 export const calculateRanges = (
   flightOptions: FlightOption[], 

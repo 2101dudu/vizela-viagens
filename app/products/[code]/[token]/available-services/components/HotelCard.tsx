@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Hotel, RoomWithGroup } from '../types';
-import VirtualizedRoomList from './VirtualizedRoomList';
 import RoomCard from './RoomCard';
 import FetchMoreRooms from '../hooks/useFetchMoreRooms';
 
@@ -12,6 +11,7 @@ interface HotelCardProps {
   formatDate: (date: string) => string;
   token: string;
   hasMore: boolean;
+  onNewRoomsFetched?: (newRooms: RoomWithGroup[], hotelCode: string) => void;
 }
 
 const HotelCard = React.memo<HotelCardProps>(({ 
@@ -21,7 +21,8 @@ const HotelCard = React.memo<HotelCardProps>(({
   renderStarRating, 
   formatDate,
   token,
-  hasMore
+  hasMore,
+  onNewRoomsFetched
 }) => {
   // Flatten all rooms from all room groups for this hotel
   const initialRooms = hotel.RoomsOccupancy.item.flatMap(roomGroup => 
@@ -54,6 +55,12 @@ const HotelCard = React.memo<HotelCardProps>(({
       setHasFetched(true);
       setHasMoreRooms(result.hasMore);
       setHasRoomsToShow(true);
+      hotel.RoomsOccupancy.item[0].Rooms.item.push(...result.rooms);
+      
+      // Call the callback to update lookup maps with new rooms
+      if (onNewRoomsFetched) {
+        onNewRoomsFetched(result.rooms, hotel.Code);
+      }
     } catch (error) {
       console.error('Error fetching more rooms:', error);
     } finally {
@@ -152,7 +159,7 @@ const HotelCard = React.memo<HotelCardProps>(({
               
               {/* Load More Button */}
               {(hasMoreRooms || hasRoomsToShow) && (
-                <div className="flex justify-center p-4 border-t border-gray-200">
+                <div className="flex justify-center p-4">
                   <button
                     onMouseEnter={fetchMoreRooms}
                     onClick={showMoreRooms}

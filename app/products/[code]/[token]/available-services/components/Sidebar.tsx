@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BookingState, ProductData } from '../types';
+import { BookingState, ProductData, LookupMaps } from '../types';
 
 interface SidebarProps {
   productData: ProductData;
@@ -11,6 +11,7 @@ interface SidebarProps {
   renderStarRating: (rating: string) => React.ReactNode;
   onConfirmButtonHover?: () => void;
   token: string | null;
+  lookupMaps: LookupMaps;
 }
 
 interface FormData {
@@ -39,7 +40,8 @@ const Sidebar = React.memo<SidebarProps>(({
   isDone,
   renderStarRating,
   onConfirmButtonHover,
-  token
+  token,
+  lookupMaps
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState<FormData>({
@@ -256,8 +258,7 @@ const Sidebar = React.memo<SidebarProps>(({
               <h2 className="text-lg font-semibold text-blue-800 mb-3">Resumo de Preços</h2>
               <div className="space-y-2 text-sm">
                 {bookingState.selectedFlight && (() => {
-                  const originalFlightOptions = productData?.data?.FlightMainGroup?.item?.[0]?.FlightOptionsSuperBB?.item || [];
-                  const selectedOption = originalFlightOptions.find(option => option.OptionCode === bookingState.selectedFlight!.optionCode);
+                  const selectedOption = lookupMaps.flightOptionsMap.get(bookingState.selectedFlight!.optionCode);
                   return selectedOption && (
                     <div className="flex justify-between">
                       <span>Voo:</span>
@@ -314,73 +315,81 @@ const Sidebar = React.memo<SidebarProps>(({
                   >
                     ← Voltar
                   </button>
-                  <button
-                    onClick={() => switchTab('hotels-0')}
+                    <button
+                    onClick={() => {
+                      switchTab('hotels-0');
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
                     disabled={!bookingState.selectedFlight}
                     className={`w-full font-medium py-3 px-4 rounded-lg transition-colors ${
                       bookingState.selectedFlight
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
-                  >
+                    >
                     Seguinte →
-                  </button>
+                    </button>
                 </>
               )}
               
               {/* Hotel Tab Navigation */}
               {bookingState.currentTab.startsWith('hotels-') && (
                 <>
-                  <button
+                    <button
                     onClick={() => {
                       if (bookingState.currentHotelIndex === 0) {
-                        switchTab('flights');
+                      switchTab('flights');
                       } else {
-                        switchTab(`hotels-${bookingState.currentHotelIndex - 1}`);
+                      switchTab(`hotels-${bookingState.currentHotelIndex - 1}`);
                       }
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
                     className="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
-                  >
+                    >
                     ← Voltar
-                  </button>
-                  <button
+                    </button>
+                    <button
                     onClick={() => {
                       const currentLocation = hotelLocations[bookingState.currentHotelIndex];
                       
                       if (bookingState.currentHotelIndex < hotelLocations.length - 1) {
-                        // Go to next hotel
-                        switchTab(`hotels-${bookingState.currentHotelIndex + 1}`);
+                      // Go to next hotel
+                      switchTab(`hotels-${bookingState.currentHotelIndex + 1}`);
                       } else {
-                        // Go to review
-                        switchTab('review');
+                      // Go to review
+                      switchTab('review');
                       }
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}                
                     onMouseEnter={() => {
                       if (!(bookingState.currentHotelIndex < hotelLocations.length - 1) && onConfirmButtonHover) {
-                        onConfirmButtonHover();
+                      onConfirmButtonHover();
                       }
                     }}
                     disabled={!bookingState.selectedHotels[hotelLocations[bookingState.currentHotelIndex]?.Code]}
                     className={`w-full font-medium py-3 px-4 rounded-lg transition-colors ${
                       bookingState.selectedHotels[hotelLocations[bookingState.currentHotelIndex]?.Code]
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
-                  >
+                    >
                     {bookingState.currentHotelIndex < hotelLocations.length - 1 ? 'Seguinte →' : 'Revisão →'}
-                  </button>
+                    </button>
                 </>
               )}
 
               {/* Review Tab Navigation */}
               {bookingState.currentTab === 'review' && (
                 <>
-                  <button
-                    onClick={() => switchTab(`hotels-${hotelLocations.length - 1}`)}
+                    <button
+                    onClick={() => {
+                      switchTab(`hotels-${hotelLocations.length - 1}`);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
                     className="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
-                  >
+                    >
                     ← Voltar
-                  </button>
+                    </button>
                   <button
                     onClick={openModal}
                     disabled={!token}

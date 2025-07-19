@@ -28,7 +28,7 @@ import Sidebar from './components/Sidebar';
 // Import utilities
 import { formatTime, formatDate } from './utils/formatters';
 import { renderStarRating } from './utils/starRating';
-import { calculateLocationStarRange } from './utils/dataProcessing';
+import { calculateLocationStarRange, updateLookupMapsWithNewRooms, updateLookupMapsWithNewFlights } from './utils/dataProcessing';
 
 export default function AvailableServicesPage() {
   const params = useParams();
@@ -46,20 +46,46 @@ export default function AvailableServicesPage() {
   // Custom hooks
   const { bookingState, setBookingState, selectedFlights, setSelectedFlights } = useBookingState();
   const { flightFilters, updateFlightFilters, updateHotelFilters, getHotelFiltersForLocation } = useFilters();
-  const { baseData, lookupMaps, ranges } = useDataProcessing(productData);
+  const { baseData, lookupMaps: initialLookupMaps, ranges } = useDataProcessing(productData);
   
+  // State for dynamically updated lookup maps and hotel locations
+  const [lookupMaps, setLookupMaps] = useState(initialLookupMaps);
+  const [updatedHotelLocations, setUpdatedHotelLocations] = useState(baseData.hotelLocations);
+  const [updatedFlightOptions, setUpdatedFlightOptions] = useState(baseData.flightOptions);
+  
+  // Update lookup maps when initial data changes
+  React.useEffect(() => {
+    setLookupMaps(initialLookupMaps);
+  }, [initialLookupMaps]);
+
+  // Update hotel locations when base data changes
+  React.useEffect(() => {
+    setUpdatedHotelLocations(baseData.hotelLocations);
+  }, [baseData.hotelLocations]);
+
+  // Update flight options when base data changes
+  React.useEffect(() => {
+    setUpdatedFlightOptions(baseData.flightOptions);
+  }, [baseData.flightOptions]);
+
   // Get current location filters for proper dependency tracking
-  const currentLocationCode = baseData.hotelLocations[bookingState.currentHotelIndex]?.Code || '';
+  const currentLocationCode = updatedHotelLocations[bookingState.currentHotelIndex]?.Code || '';
   const currentLocationFilters = getHotelFiltersForLocation(currentLocationCode);
   
-  const filteredData = useFilteredData(baseData, flightFilters, currentLocationFilters, bookingState.currentHotelIndex);
+  // Create updated base data with dynamic flight options and hotel locations
+  const updatedBaseData = React.useMemo(() => ({
+    flightOptions: updatedFlightOptions,
+    hotelLocations: updatedHotelLocations
+  }), [updatedFlightOptions, updatedHotelLocations]);
+  
+  const filteredData = useFilteredData(updatedBaseData, flightFilters, currentLocationFilters, bookingState.currentHotelIndex);
   const totalPrice = usePriceCalculation(bookingState, lookupMaps, productData);
 
   // Flight selection logic
   const { handleFlightSelection, getSelectedFlightForSegment } = useFlightSelection(
     selectedFlights,
     setSelectedFlights,
-    baseData,
+    updatedBaseData,
     lookupMaps,
     setBookingState
   );
@@ -73,11 +99,44 @@ export default function AvailableServicesPage() {
   const [hasPrefetchedSimulation, setHasPrefetchedSimulation] = useState(false);
   const [isSimulationPrefetchInProgress, setIsSimulationPrefetchInProgress] = useState(false);
 
+  // Function to update lookup maps with new rooms
+  const updateLookupMapsWithRooms = useCallback((newRooms: any[], hotelCode: string) => {
+    setLookupMaps(prevMaps => updateLookupMapsWithNewRooms(prevMaps, newRooms, hotelCode));
+  }, []);
+
+  // Function to update lookup maps with new flights
+  const updateLookupMapsWithFlights = useCallback((newFlights: any[]) => {
+    setLookupMaps(prevMaps => updateLookupMapsWithNewFlights(prevMaps, newFlights));
+    setUpdatedFlightOptions(prevFlights => [...prevFlights, ...newFlights]);
+  }, []);
+
+  // Function to update hotel locations with new hotels
+  const updateHotelLocationsWithNewHotels = useCallback((newHotels: any[], locationCode: string) => {
+    setUpdatedHotelLocations(prevLocations => {
+      return prevLocations.map(location => {
+        if (location.Code === locationCode) {
+          // Find existing hotels to avoid duplicates
+          const existingHotelCodes = new Set(location.HotelOption?.item?.map((h: any) => h.Code) || []);
+          const uniqueNewHotels = newHotels.filter(hotel => !existingHotelCodes.has(hotel.Code));
+          
+          return {
+            ...location,
+            HotelOption: {
+              ...location.HotelOption,
+              item: [...(location.HotelOption?.item || []), ...uniqueNewHotels]
+            }
+          };
+        }
+        return location;
+      });
+    });
+  }, []);
+
   // Hotel room selection handler
   const handleHotelRoomSelection = useCallback((hotelCode: string, roomCode: string, roomNum: string) => {
-    const currentLocation = baseData.hotelLocations[bookingState.currentHotelIndex];
+    const currentLocation = updatedHotelLocations[bookingState.currentHotelIndex];
     if (!currentLocation) return;
-    
+
     setBookingState(prev => ({
       ...prev,
       selectedHotels: {
@@ -90,20 +149,20 @@ export default function AvailableServicesPage() {
         }
       }
     }));
-  }, [baseData.hotelLocations, bookingState.currentHotelIndex, setBookingState]);
+  }, [updatedHotelLocations, bookingState.currentHotelIndex, setBookingState]);
 
   // Tab access control
   const canAccessTab = useCallback((tab: string) => {
     if (tab === 'flights') return true;
     if (tab.startsWith('hotels-')) return bookingState.selectedFlight !== null;
     if (tab === 'review') {
-      const allHotelLocationsSelected = baseData.hotelLocations.every(location => 
+      const allHotelLocationsSelected = updatedHotelLocations.every(location => 
         bookingState.selectedHotels[location.Code] !== undefined
       );
       return bookingState.selectedFlight !== null && allHotelLocationsSelected;
     }
     return false;
-  }, [bookingState.selectedFlight, bookingState.selectedHotels, baseData.hotelLocations]);
+  }, [bookingState.selectedFlight, bookingState.selectedHotels, updatedHotelLocations]);
 
   // Set services function - runs in background without blocking UI
   const setServices = useCallback(async () => {
@@ -194,7 +253,7 @@ export default function AvailableServicesPage() {
   }, [
     bookingState.selectedFlight, 
     bookingState.selectedHotels, 
-    baseData.hotelLocations.length, 
+    updatedHotelLocations.length, 
     canAccessTab,
     setServices
   ]);
@@ -381,7 +440,7 @@ export default function AvailableServicesPage() {
   }
 
   // Check for empty flight options or hotels
-  const hasHotels = baseData.hotelLocations.some(location => 
+  const hasHotels = updatedHotelLocations.some(location => 
     location.HotelOption?.item && location.HotelOption.item.length > 0
   );
   
@@ -459,7 +518,7 @@ export default function AvailableServicesPage() {
           {/* Tab Navigation */}
           <TabNavigation 
             bookingState={bookingState}
-            hotelLocations={baseData.hotelLocations}
+            hotelLocations={updatedHotelLocations}
             canAccessTab={canAccessTab}
             switchTab={switchTab}
             onReviewTabHover={getSimulationData}
@@ -481,6 +540,7 @@ export default function AvailableServicesPage() {
                 layoverRange={ranges.layoverRange}
                 token={productData?.flightsToken || ''}
                 hasMore={productData?.hasMoreFlights || false}
+                updateLookupMapsWithFlights={updateLookupMapsWithFlights}
               />
             )}
 
@@ -496,8 +556,10 @@ export default function AvailableServicesPage() {
                 hotelFilters={currentLocationFilters}
                 onFiltersChange={(filters) => updateHotelFilters(filteredData.currentLocation?.Code || '', filters)}
                 starRange={calculateLocationStarRange(filteredData.currentLocation)}
-                token={productData?.hotelsToken || ''}
-                hasMore={productData?.hasMoreHotels || false}
+                token={filteredData.currentLocation?.Token || ''}
+                hasMore={filteredData.currentLocation?.HasMore || false}
+                updateLookupMapsWithRooms={updateLookupMapsWithRooms}
+                updateHotelLocationsWithNewHotels={updateHotelLocationsWithNewHotels}
               />
             )}
 
@@ -518,7 +580,7 @@ export default function AvailableServicesPage() {
                   <ReviewTab 
                     bookingState={bookingState}
                     productData={productData}
-                    hotelLocations={baseData.hotelLocations}
+                    hotelLocations={updatedHotelLocations}
                     totalPrice={totalPrice}
                     formatDate={formatDate}
                     renderStarRating={renderStarRating}
@@ -536,13 +598,14 @@ export default function AvailableServicesPage() {
         <Sidebar 
           productData={productData}
           bookingState={bookingState}
-          hotelLocations={baseData.hotelLocations}
+          hotelLocations={updatedHotelLocations}
           switchTab={switchTab}
           totalPrice={totalPrice}
           isDone={isDone}
           renderStarRating={renderStarRating}
           onConfirmButtonHover={getSimulationData}
           token={simulToken}
+          lookupMaps={lookupMaps}
         />
       </div>
     </div>

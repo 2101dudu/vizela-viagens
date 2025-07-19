@@ -44,7 +44,9 @@ export const useFlightSelection = (
     if (!selectedOption) return;
 
     // Set the selected flight for this segment
+    newSelections[optionCode] ??= {};
     newSelections[optionCode][segmentCode] = flightGroupCode;
+
 
     // Auto-select other segments if they have only one flight option
     selectedOption.FlightSegments.item.forEach(segment => {
@@ -133,6 +135,30 @@ export const useFlightSelection = (
       }
     }
   }, [baseData.flightOptions, selectedFlights, setSelectedFlights, setBookingState]);
+
+  // Handle new flights being added to baseData - ensure they have entries in selectedFlights
+  useEffect(() => {
+    if (baseData.flightOptions.length > 0) {
+      const currentSelections = selectedFlights;
+      const updated: {[optionCode: string]: {[segmentCode: string]: string}} = { ...currentSelections };
+      let hasChanges = false;
+      
+      baseData.flightOptions.forEach(option => {
+        if (!updated[option.OptionCode]) {
+          updated[option.OptionCode] = {};
+          hasChanges = true;
+          
+          option.FlightSegments.item.forEach(segment => {
+            updated[option.OptionCode][segment.SegmentCode] = "";
+          });
+        }
+      });
+      
+      if (hasChanges) {
+        setSelectedFlights(updated);
+      }
+    }
+  }, [baseData.flightOptions, selectedFlights, setSelectedFlights]);
 
   return {
     handleFlightSelection,

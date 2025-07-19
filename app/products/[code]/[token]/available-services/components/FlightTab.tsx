@@ -3,6 +3,7 @@ import { FlightOption, FlightFilters, Range } from '../types';
 import FlightOptionCard from './FlightOptionCard';
 import FlightFiltersComponent from './FlightFiltersComponent';
 import FetchMoreFlights from '../hooks/useFetchMoreFlights';
+import { filter } from 'framer-motion/client';
 
 interface FlightTabProps {
   filteredFlightOptions: FlightOption[];
@@ -16,6 +17,7 @@ interface FlightTabProps {
   layoverRange: Range;
   token: string;
   hasMore: boolean;
+  updateLookupMapsWithFlights: (newFlights: FlightOption[]) => void;
 }
 
 const FlightTab = React.memo<FlightTabProps>(({
@@ -30,9 +32,9 @@ const FlightTab = React.memo<FlightTabProps>(({
   layoverRange,
   token,
   hasMore,
+  updateLookupMapsWithFlights,
 }) => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [allFlights, setAllFlights] = useState<FlightOption[]>(filteredFlightOptions);
   const [hasMoreFlights, setHasMoreFlights] = useState(hasMore);
   const [fetchedFlights, setFetchedFlights] = useState<FlightOption[]>([]);
   const [hasFetched, setHasFetched] = useState(false);
@@ -40,16 +42,15 @@ const FlightTab = React.memo<FlightTabProps>(({
 
   // Update local state when props change
   React.useEffect(() => {
-    setAllFlights(filteredFlightOptions);
     setHasMoreFlights(hasMore);
-  }, [filteredFlightOptions, hasMore]);
+  }, [hasMore]);
 
   const fetchMoreFlights = async () => {
     if (isLoadingMore || hasFetched) return;
     
     setIsLoadingMore(true);
     try {
-      const result = await FetchMoreFlights(token, allFlights.length, 5);
+      const result = await FetchMoreFlights(token, filteredFlightOptions.length, 5);
       setFetchedFlights(result.flights);
       setHasFetched(true);
       setHasMoreFlights(result.hasMore);
@@ -63,7 +64,9 @@ const FlightTab = React.memo<FlightTabProps>(({
 
   const showMoreFlights = () => {
     if (hasFetched) {
-      setAllFlights(prevFlights => [...prevFlights, ...fetchedFlights]);
+      // Update lookup maps and base data with new flights
+      updateLookupMapsWithFlights(fetchedFlights);
+      console.log("Fetched flights:", fetchedFlights);
       setHasFetched(false);
       setHasFlightsToShow(false);
     }
@@ -81,7 +84,7 @@ const FlightTab = React.memo<FlightTabProps>(({
       />
       
       <div className="space-y-6 mb-6">
-        {allFlights.map((option) => (
+        {filteredFlightOptions.map((option) => (
           <FlightOptionCard 
             key={option.OptionCode}
             option={option}
