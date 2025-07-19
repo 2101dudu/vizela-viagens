@@ -410,41 +410,12 @@ export default function AvailableServicesPage() {
     );
   }
 
-  // Error state
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center text-red-600">
-          <h2 className="text-xl font-semibold mb-2">Erro</h2>
-          <p className="mb-4">{error}</p>
-          <button
-            onClick={() => router.push(`/products/${code}`)}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-          >
-            Voltar à Página Anterior
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // No data state
-  if (!data) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p>Nenhuns dados encontrados.</p>
-        </div>
-      </div>
-    );
-  }
-
   // Check for empty flight options or hotels
   const hasHotels = updatedHotelLocations.some(location => 
     location.HotelOption?.item && location.HotelOption.item.length > 0
   );
   
-  if (baseData.flightOptions.length === 0 || !hasHotels) {
+  if (error || !data || baseData.flightOptions.length === 0 || !hasHotels) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center text-red-600 max-w-md">
@@ -458,7 +429,7 @@ export default function AvailableServicesPage() {
           {baseData.flightOptions.length === 0 && !hasHotels ? (
             <div className="mb-4">
               <p className="mb-2 text-gray-700">
-                <strong>Não existem voos nem alojamentos disponíveis</strong> para as suas datas e especificações.
+                <strong>Não existem voos ou alojamentos disponíveis</strong> para as suas datas e especificações.
               </p>
               <p className="text-sm text-gray-600 mb-4">
                 Isto pode acontecer devido a limitações de disponibilidade, restrições sazonais, ou as datas selecionadas podem estar esgotadas.
