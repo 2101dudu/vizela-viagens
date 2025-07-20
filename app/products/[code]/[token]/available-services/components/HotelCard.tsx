@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
-import { Hotel, RoomWithGroup } from '../types';
+import { Hotel, RoomWithGroup, RoomGroup } from '../types';
 import RoomCard from './RoomCard';
 import FetchMoreRooms from '../hooks/useFetchMoreRooms';
+
+interface RoomGroupState {
+  id: number;
+  roomGroup: RoomGroup;
+  allRooms: RoomWithGroup[];
+  isLoadingMore: boolean;
+  hasMoreRooms: boolean;
+  fetchedRooms: RoomWithGroup[];
+  hasFetched: boolean;
+  hasRoomsToShow: boolean;
+}
 
 interface HotelCardProps {
   hotel: Hotel;
@@ -9,8 +20,6 @@ interface HotelCardProps {
   onRoomSelection: (hotelCode: string, roomCode: string, roomNum: string) => void;
   renderStarRating: (rating: string) => React.ReactNode;
   formatDate: (date: string) => string;
-  token: string;
-  hasMore: boolean;
   onNewRoomsFetched?: (newRooms: RoomWithGroup[], hotelCode: string) => void;
 }
 
@@ -20,42 +29,65 @@ const HotelCard = React.memo<HotelCardProps>(({
   onRoomSelection, 
   renderStarRating, 
   formatDate,
-  token,
-  hasMore,
   onNewRoomsFetched
 }) => {
-  // Flatten all rooms from all room groups for this hotel
-  const initialRooms = hotel.RoomsOccupancy.item.flatMap(roomGroup => 
-    roomGroup.Rooms.item.map(room => ({ ...room, roomGroup: roomGroup.RoomGroup }))
+  // State for each room group
+  const [roomGroupStates, setRoomGroupStates] = useState(() =>
+    hotel.RoomsOccupancy.item.map((roomGroup, index) => ({
+      id: index,
+      roomGroup,
+      allRooms: roomGroup.Rooms.item.map(room => ({ ...room, roomGroup: roomGroup.RoomGroup })),
+      isLoadingMore: false,
+      hasMoreRooms: roomGroup.HasMore,
+      fetchedRooms: [] as RoomWithGroup[],
+      hasFetched: false,
+      hasRoomsToShow: false,
+    }))
   );
-
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [allRooms, setAllRooms] = useState<RoomWithGroup[]>(initialRooms);
-  const [hasMoreRooms, setHasMoreRooms] = useState(hasMore);
-  const [fetchedRooms, setFetchedRooms] = useState<RoomWithGroup[]>([]);
-  const [hasFetched, setHasFetched] = useState(false);
-  const [hasRoomsToShow, setHasRoomsToShow] = useState(false);
 
   // Update local state when props change
   React.useEffect(() => {
-    const newInitialRooms = hotel.RoomsOccupancy.item.flatMap(roomGroup => 
-      roomGroup.Rooms.item.map(room => ({ ...room, roomGroup: roomGroup.RoomGroup }))
-    );
-    setAllRooms(newInitialRooms);
-    setHasMoreRooms(hasMore);
-  }, [hotel, hasMore]);
+    const newStates = hotel.RoomsOccupancy.item.map((roomGroup, index) => ({
+      id: index,
+      roomGroup,
+      allRooms: roomGroup.Rooms.item.map(room => ({ ...room, roomGroup: roomGroup.RoomGroup })),
+      isLoadingMore: false,
+      hasMoreRooms: roomGroup.HasMore,
+      fetchedRooms: [] as RoomWithGroup[],
+      hasFetched: false,
+      hasRoomsToShow: false,
+    }));
+    setRoomGroupStates(newStates);
+  }, [hotel]);
 
-  const fetchMoreRooms = async () => {
-    if (isLoadingMore || hasFetched) return;
+  const fetchMoreRooms = async (groupIndex: number) => {
+    const currentState = roomGroupStates[groupIndex];
+    if (currentState.isLoadingMore || currentState.hasFetched) return;
     
-    setIsLoadingMore(true);
+    setRoomGroupStates(prev => prev.map((state, index) => 
+      index === groupIndex ? { ...state, isLoadingMore: true } : state
+    ));
+
     try {
-      const result = await FetchMoreRooms(token, allRooms.length, 5);
-      setFetchedRooms(result.rooms);
-      setHasFetched(true);
-      setHasMoreRooms(result.hasMore);
-      setHasRoomsToShow(true);
-      hotel.RoomsOccupancy.item[0].Rooms.item.push(...result.rooms);
+      const result = await FetchMoreRooms(
+        currentState.roomGroup.Token, 
+        currentState.allRooms.length, 
+        5
+      );
+      
+      setRoomGroupStates(prev => prev.map((state, index) => 
+        index === groupIndex ? {
+          ...state,
+          fetchedRooms: result.rooms,
+          hasFetched: true,
+          hasMoreRooms: result.hasMore,
+          hasRoomsToShow: true,
+          isLoadingMore: false,
+        } : state
+      ));
+
+      // Update the original data structure
+      hotel.RoomsOccupancy.item[groupIndex].Rooms.item.push(...result.rooms);
       
       // Call the callback to update lookup maps with new rooms
       if (onNewRoomsFetched) {
@@ -63,16 +95,23 @@ const HotelCard = React.memo<HotelCardProps>(({
       }
     } catch (error) {
       console.error('Error fetching more rooms:', error);
-    } finally {
-      setIsLoadingMore(false);
+      setRoomGroupStates(prev => prev.map((state, index) => 
+        index === groupIndex ? { ...state, isLoadingMore: false } : state
+      ));
     }
   };
 
-  const showMoreRooms = () => {
-    if (hasFetched) {
-      setAllRooms(prevRooms => [...prevRooms, ...fetchedRooms]);
-      setHasFetched(false);
-      setHasRoomsToShow(false);
+  const showMoreRooms = (groupIndex: number) => {
+    const currentState = roomGroupStates[groupIndex];
+    if (currentState.hasFetched) {
+      setRoomGroupStates(prev => prev.map((state, index) => 
+        index === groupIndex ? {
+          ...state,
+          allRooms: [...state.allRooms, ...state.fetchedRooms],
+          hasFetched: false,
+          hasRoomsToShow: false,
+        } : state
+      ));
     }
   };
 
@@ -132,44 +171,78 @@ const HotelCard = React.memo<HotelCardProps>(({
         
         {/* Hotel Details */}
         <div className="md:w-full p-6">
-          {/* Room Selection - Scrollable Container */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="font-semibold text-gray-800">Escolha o seu quarto:</h4>
-              <span className="text-sm text-gray-500">
-                {allRooms.length} quarto{allRooms.length !== 1 ? 's' : ''} disponível{allRooms.length !== 1 ? 'is' : ''}
-              </span>
-            </div>
-            <div className="border border-gray-200 rounded-lg">
-              <div className="space-y-2 p-2">
-                {allRooms.map((room) => (
-                  <RoomCard 
-                    key={`${hotel.Code}-${room.Code}-${room.RoomNum}`}
-                    room={room}
-                    hotelCode={hotel.Code}
-                    isSelected={
-                      selectedHotel?.hotelCode === hotel.Code &&
-                      selectedHotel?.roomCode === room.Code &&
-                      selectedHotel?.roomNum === room.RoomNum
-                    }
-                    onSelect={() => onRoomSelection(hotel.Code, room.Code, room.RoomNum)}
-                  />
-                ))}
-              </div>
+          {/* Room Selection - Multiple Room Groups */}
+          <div className="space-y-6">
+            <h4 className="font-semibold text-gray-800">Escolha os seus quartos:</h4>
+            
+            {roomGroupStates.map((roomGroupState, groupIndex) => {
+              const { roomGroup, allRooms, hasMoreRooms, hasRoomsToShow } = roomGroupState;
               
-              {/* Load More Button */}
-              {(hasMoreRooms || hasRoomsToShow) && (
-                <div className="flex justify-center p-4">
-                  <button
-                    onMouseEnter={fetchMoreRooms}
-                    onClick={showMoreRooms}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 text-sm"
-                  >
-                    {'Ver mais'}
-                  </button>
+              return (
+                <div key={`${hotel.Code}-group-${groupIndex}`} className="border border-gray-200 rounded-lg p-4">
+                  {/* Room Group Header */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-4">
+                      <h5 className="font-medium text-gray-700">
+                        Quarto {groupIndex + 1}
+                      </h5>
+                      <div className="text-sm text-gray-600 flex items-center space-x-2">
+                        <span className="flex items-center">
+                          <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                          </svg>
+                          {roomGroup.NumAdults} adulto{roomGroup.NumAdults !== '1' ? 's' : ''}
+                        </span>
+                        {parseInt(roomGroup.NumChilds) > 0 && (
+                          <span className="flex items-center">
+                            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 2a4 4 0 100 8 4 4 0 000-8zM8 14a6 6 0 00-6 6 1 1 0 001 1h10a1 1 0 001-1 6 6 0 00-6-6H8z" clipRule="evenodd" />
+                            </svg>
+                            {roomGroup.NumChilds} criança{roomGroup.NumChilds !== '1' ? 's' : ''}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <span className="text-sm text-gray-500">
+                      {allRooms.length} quarto{allRooms.length !== 1 ? 's' : ''} disponível{allRooms.length !== 1 ? 'is' : ''}
+                    </span>
+                  </div>
+
+                  {/* Room Cards for this Group */}
+                  <div className="border border-gray-100 rounded-lg">
+                    <div className="space-y-2 p-2">
+                      {allRooms.map((room) => (
+                        <RoomCard 
+                          key={`${hotel.Code}-${room.Code}-${room.RoomNum}-${groupIndex}`}
+                          room={room}
+                          hotelCode={hotel.Code}
+                          isSelected={
+                            selectedHotel?.hotelCode === hotel.Code &&
+                            selectedHotel?.roomCode === room.Code &&
+                            selectedHotel?.roomNum === room.RoomNum
+                          }
+                          onSelect={() => onRoomSelection(hotel.Code, room.Code, room.RoomNum)}
+                        />
+                      ))}
+                    </div>
+                    
+                    {/* Load More Button for this Group */}
+                    {(hasMoreRooms || hasRoomsToShow) && (
+                      <div className="flex justify-center p-4">
+                        <button
+                          onMouseEnter={() => fetchMoreRooms(groupIndex)}
+                          onClick={() => showMoreRooms(groupIndex)}
+                          disabled={roomGroupState.isLoadingMore}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 text-sm"
+                        >
+                          {roomGroupState.isLoadingMore ? 'A carregar...' : 'Ver mais'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
+              );
+            })}
           </div>
         </div>
       </div>

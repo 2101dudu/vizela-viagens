@@ -72,6 +72,8 @@ export interface RoomGroup {
   Rooms: {
     item: Room[];
   };
+  Token: string;
+  HasMore: boolean;
 }
 
 export interface Hotel {
@@ -88,8 +90,6 @@ export interface Hotel {
   RoomsOccupancy: {
     item: RoomGroup[];
   };
-  Token: string;
-  HasMore: boolean;
 }
 
 export interface InsuranceUpgrade {
