@@ -271,14 +271,47 @@ const Sidebar = React.memo<SidebarProps>(({
                   const location = hotelLocations.find((loc: any) => loc.Code === locationCode);
                   const hotels = location?.HotelOption?.item || [];
                   const selectedHotel = hotels.find((hotel: any) => hotel.Code === hotelSelection.hotelCode);
-                  const selectedRoom = selectedHotel?.RoomsOccupancy.item[0]?.Rooms.item.find((room: any) => 
-                    room.Code === hotelSelection.roomCode && 
-                    room.RoomNum === hotelSelection.roomNum
-                  );
-                  return selectedRoom && (
-                    <div key={locationCode} className="flex justify-between">
-                      <span>Alojamento {location?.Name === "Alojamento" ? "" : location?.Name}:</span>
-                      <span>€{selectedRoom.SellValue}</span>
+                  
+                  if (!selectedHotel) return null;
+                  
+                  // Calculate total price for all rooms in this hotel
+                  let hotelTotalPrice = 0;
+                  const roomSelections = hotelSelection.roomSelections || {};
+                  
+                  return (
+                    <div key={locationCode} className="space-y-1">
+                      <div className="font-medium text-blue-700 flex justify-between">
+                        <span>Hotel {location?.Name === "Alojamento" ? "" : `- ${location?.Name}`}:</span>
+                        <span>{selectedHotel.Name}</span>
+                      </div>
+                      {Object.entries(roomSelections).map(([roomGroupId, roomSelection], roomIndex) => {
+                        // Find the room details
+                        const roomGroup = selectedHotel.RoomsOccupancy.item.find(
+                          (rg: any) => rg.RoomGroup === roomGroupId
+                        );
+                        const room = roomGroup?.Rooms.item.find((r: any) => 
+                          r.Code === roomSelection.roomCode && r.RoomNum === roomSelection.roomNum
+                        );
+                        
+                        if (!room) return null;
+                        
+                        const roomPrice = parseFloat(room.SellValue);
+                        hotelTotalPrice += roomPrice;
+                        
+                        return (
+                          <div key={`${roomGroupId}-${roomSelection.roomCode}`} className="flex justify-between text-xs text-gray-600 ml-4">
+                            <span>
+                              Quarto {roomIndex + 1} ({roomGroup?.NumAdults} adulto{roomGroup?.NumAdults !== '1' ? 's' : ''}
+                              {parseInt(roomGroup?.NumChilds || '0') > 0 && `, ${roomGroup?.NumChilds} criança${roomGroup?.NumChilds !== '1' ? 's' : ''}`}):
+                            </span>
+                            <span>€{roomPrice.toFixed(2)}</span>
+                          </div>
+                        );
+                      })}
+                      <div className="flex justify-between font-medium border-t pt-1">
+                        <span>Subtotal {location?.Name === "Alojamento" ? "Alojamento" : location?.Name}:</span>
+                        <span>€{hotelTotalPrice.toFixed(2)}</span>
+                      </div>
                     </div>
                   );
                 })}
@@ -366,11 +399,39 @@ const Sidebar = React.memo<SidebarProps>(({
                       onConfirmButtonHover();
                       }
                     }}
-                    disabled={!bookingState.selectedHotels[hotelLocations[bookingState.currentHotelIndex]?.Code]}
+                    disabled={(() => {
+                      const currentLocation = hotelLocations[bookingState.currentHotelIndex];
+                      const hotelSelection = bookingState.selectedHotels[currentLocation?.Code];
+                      
+                      if (!hotelSelection) return true;
+                      
+                      // Check if all room groups for this location have selections
+                      const selectedHotel = currentLocation?.HotelOption?.item?.find((h: any) => h.Code === hotelSelection.hotelCode);
+                      if (!selectedHotel) return true;
+                      
+                      const requiredRoomGroups = selectedHotel.RoomsOccupancy.item.length;
+                      const selectedRoomGroups = Object.keys(hotelSelection.roomSelections || {}).length;
+                      
+                      return selectedRoomGroups !== requiredRoomGroups;
+                    })()}
                     className={`w-full font-medium py-3 px-4 rounded-lg transition-colors ${
-                      bookingState.selectedHotels[hotelLocations[bookingState.currentHotelIndex]?.Code]
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      (() => {
+                        const currentLocation = hotelLocations[bookingState.currentHotelIndex];
+                        const hotelSelection = bookingState.selectedHotels[currentLocation?.Code];
+                        
+                        if (!hotelSelection) return 'bg-gray-300 text-gray-500 cursor-not-allowed';
+                        
+                        // Check if all room groups for this location have selections
+                        const selectedHotel = currentLocation?.HotelOption?.item?.find((h: any) => h.Code === hotelSelection.hotelCode);
+                        if (!selectedHotel) return 'bg-gray-300 text-gray-500 cursor-not-allowed';
+                        
+                        const requiredRoomGroups = selectedHotel.RoomsOccupancy.item.length;
+                        const selectedRoomGroups = Object.keys(hotelSelection.roomSelections || {}).length;
+                        
+                        return selectedRoomGroups === requiredRoomGroups
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed';
+                      })()
                     }`}
                     >
                     {bookingState.currentHotelIndex < hotelLocations.length - 1 ? 'Seguinte →' : 'Revisão →'}

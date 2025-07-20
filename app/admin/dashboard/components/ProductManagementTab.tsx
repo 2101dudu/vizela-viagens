@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import Select from 'react-select';
 import { _get_product_list, ProductWrapper } from '../../admin_hooks/_get_product_list';
@@ -60,7 +61,7 @@ const ProductCard = React.memo(({
         aria-disabled={!enabled}
       >
         <div className="flex w-32 items-center space-x-4">
-          <img
+          <Image
             src={product.product.ImageUrl || '/fallback.png'}
             alt={product.product.Name || 'Product'}
             className="w-20 h-20 object-cover rounded-lg"

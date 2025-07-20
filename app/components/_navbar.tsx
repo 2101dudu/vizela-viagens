@@ -38,8 +38,8 @@ export default function NavBar() {
               href="/"
               imageSrc="/logo_square.svg"
               imageAlt="VizelaViagens logo"
-              imageW={50}
-              imageH={50}
+              imageW={250}
+              imageH={100}
               imagePrio={true}
             />
             {/* Dropdown Button */}

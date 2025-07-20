@@ -161,8 +161,13 @@ export interface BookingState {
     [itineraryCode: string]: {
       itineraryCode: string;
       hotelCode: string;
-      roomCode: string;
-      roomNum: string;
+      roomSelections: {
+        [roomGroupId: string]: {
+          roomCode: string;
+          roomNum: string;
+          roomGroupId: string;
+        };
+      };
     };
   };
   selectedInsurance: string;

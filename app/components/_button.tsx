@@ -21,7 +21,7 @@ export default function _Button({
   href,
   disabled = false,
   highlighted = false,
-  imageSrc,
+  imageSrc = "",
   imageAlt = "Button image",
   imageW = 24,
   imageH = 24,
@@ -29,15 +29,19 @@ export default function _Button({
   onClick,
 }: ButtonProps) {
   const baseStyles =
-    "w-auto px-8 py-2 hover:scale-105 transition-transform duration-100 ease-in-out flex items-center justify-center";
+    "w-auto py-2 hover:scale-105 transition-transform duration-100 ease-in-out flex items-center justify-center";
 
   const disabledStyles = disabled
     ? "opacity-50 cursor-not-allowed"
     : "";
 
   const highlightStyles = highlighted
-    ? "bg-highlight text-background rounded-xl"
+    ? "bg-highlight text-background rounded-lg"
     : "";
+
+  const imageStyles = imageSrc
+    ? "px-0"
+    : "px-8";
 
   const content = imageSrc ? (
     <Image
@@ -66,7 +70,7 @@ export default function _Button({
       <a
         href={href}
         onClick={handleAnchorClick}
-        className={`${baseStyles} ${highlightStyles} ${disabledStyles}`}
+        className={`${baseStyles} ${highlightStyles} ${disabledStyles} ${imageStyles}`}
         style={disabled ? { pointerEvents: "none" } : {}}
       >
         {content}
@@ -79,7 +83,7 @@ export default function _Button({
     return (
       <Link
         href={href}
-        className={`${baseStyles} ${highlightStyles} ${disabledStyles}`}
+        className={`${baseStyles} ${highlightStyles} ${disabledStyles} ${imageStyles}`}
         style={disabled ? { pointerEvents: "none" } : {}}
       >
         {content}
@@ -92,7 +96,7 @@ export default function _Button({
     <button
       type="button"
       onClick={onClick}
-      className={`${baseStyles} ${highlightStyles} ${disabledStyles}`}
+      className={`${baseStyles} ${highlightStyles} ${disabledStyles} ${imageStyles}`}
       disabled={disabled}
     >
       {content}

@@ -45,7 +45,7 @@ const FlightSegmentCard = React.memo<FlightSegmentCardProps>(({
           <span className="font-medium">{segment.FromIATADesc}</span>
           <span className="text-gray-500 ml-1">({segment.FromIATA})</span>
         </div>
-        <div className="text-gray-400 absolute left-1/2 transform -translate-x-1/2">
+        <div className="text-gray-400 absolute left-1/2 transform -translate-x-1/2 ml-0.5">
           <svg className="w-4 h-4 mx-auto" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10.293 15.707a1 1 0 010-1.414L14.586 10l-4.293-4.293a1 1 0 111.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clipRule="evenodd" />
           </svg>
@@ -54,9 +54,6 @@ const FlightSegmentCard = React.memo<FlightSegmentCardProps>(({
           <span className="font-medium">{segment.ToIATADesc}</span>
           <span className="text-gray-500 ml-1">({segment.ToIATA})</span>
         </div>
-      </div>
-      <div className="text-center text-sm text-gray-600 mt-1">
-        {formatDate(segment.Date)}
       </div>
     </div>
 

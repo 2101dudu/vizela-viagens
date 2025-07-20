@@ -140,11 +140,14 @@ export const usePriceCalculation = (
     
     // Hotel prices
     Object.values(bookingState.selectedHotels).forEach(hotelSelection => {
-      const roomKey = `${hotelSelection.hotelCode}-${hotelSelection.roomCode}-${hotelSelection.roomNum}`;
-      const selectedRoom = lookupMaps.roomsMap.get(roomKey);
-      if (selectedRoom) {
-        total += calculateRoomPrice(selectedRoom);
-      }
+      // Calculate price for all selected rooms in this hotel
+      Object.values(hotelSelection.roomSelections || {}).forEach(roomSelection => {
+        const roomKey = `${hotelSelection.hotelCode}-${roomSelection.roomCode}-${roomSelection.roomNum}`;
+        const selectedRoom = lookupMaps.roomsMap.get(roomKey);
+        if (selectedRoom) {
+          total += calculateRoomPrice(selectedRoom);
+        }
+      });
     });
     
     // Insurance price

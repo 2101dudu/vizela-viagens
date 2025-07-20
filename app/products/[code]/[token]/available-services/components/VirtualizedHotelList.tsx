@@ -4,8 +4,17 @@ import HotelCard from './HotelCard';
 
 interface VirtualizedHotelListProps {
   hotels: Hotel[];
-  selectedHotel: { hotelCode: string; roomCode: string; roomNum: string } | null;
-  onRoomSelection: (hotelCode: string, roomCode: string, roomNum: string) => void;
+  selectedHotelData: {
+    hotelCode: string;
+    roomSelections: {
+      [roomGroupId: string]: {
+        roomCode: string;
+        roomNum: string;
+        roomGroupId: string;
+      };
+    };
+  } | null;
+  onRoomSelection: (hotelCode: string, roomGroupId: string, roomCode: string, roomNum: string) => void;
   renderStarRating: (rating: string) => React.ReactNode;
   formatDate: (date: string) => string;
   onNewRoomsFetched?: (newRooms: RoomWithGroup[], hotelCode: string) => void;
@@ -13,7 +22,7 @@ interface VirtualizedHotelListProps {
 
 const VirtualizedHotelList: React.FC<VirtualizedHotelListProps> = ({ 
   hotels, 
-  selectedHotel, 
+  selectedHotelData, 
   onRoomSelection, 
   renderStarRating, 
   formatDate,
@@ -25,7 +34,7 @@ const VirtualizedHotelList: React.FC<VirtualizedHotelListProps> = ({
         <HotelCard 
           key={hotel.Code || index}
           hotel={hotel}
-          selectedHotel={selectedHotel}
+          selectedHotelData={selectedHotelData}
           onRoomSelection={onRoomSelection}
           renderStarRating={renderStarRating}
           formatDate={formatDate}

@@ -7,8 +7,17 @@ import FetchMoreHotels from '../hooks/useFetchMoreHotels';
 interface HotelTabProps {
   currentLocation: any;
   filteredHotels: Hotel[];
-  selectedHotel: { hotelCode: string; roomCode: string; roomNum: string } | null;
-  onRoomSelection: (hotelCode: string, roomCode: string, roomNum: string) => void;
+  selectedHotelData: {
+    hotelCode: string;
+    roomSelections: {
+      [roomGroupId: string]: {
+        roomCode: string;
+        roomNum: string;
+        roomGroupId: string;
+      };
+    };
+  } | null;
+  onRoomSelection: (hotelCode: string, roomGroupId: string, roomCode: string, roomNum: string) => void;
   renderStarRating: (rating: string) => React.ReactNode;
   formatDate: (date: string) => string;
   hotelFilters: HotelFilters;
@@ -23,7 +32,7 @@ interface HotelTabProps {
 const HotelTab = React.memo<HotelTabProps>(({
   currentLocation,
   filteredHotels,
-  selectedHotel,
+  selectedHotelData,
   onRoomSelection,
   renderStarRating,
   formatDate,
@@ -91,7 +100,7 @@ const HotelTab = React.memo<HotelTabProps>(({
         <VirtualizedHotelList 
           key={`hotels-${currentLocation?.Code}-${hotelFilters.selectedStars.join(',')}-${allHotels.length}`}
           hotels={allHotels}
-          selectedHotel={selectedHotel}
+          selectedHotelData={selectedHotelData}
           onRoomSelection={onRoomSelection}
           renderStarRating={renderStarRating}
           formatDate={formatDate}

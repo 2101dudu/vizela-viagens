@@ -105,25 +105,50 @@ const ReviewTab = React.memo<ReviewTabProps>(({
               const location = hotelLocations.find((loc: any) => loc.Code === locationCode);
               const hotels = location?.HotelOption?.item || [];
               const selectedHotel = hotels.find((hotel: any) => hotel.Code === hotelSelection.hotelCode);
-              const selectedRoom = selectedHotel?.RoomsOccupancy.item[0]?.Rooms.item.find((room: any) => 
-                room.Code === hotelSelection.roomCode && 
-                room.RoomNum === hotelSelection.roomNum
-              );
               
-              return selectedHotel && selectedRoom && (
+              if (!selectedHotel) return null;
+              
+              let totalHotelPrice = 0;
+              
+              return (
                 <div key={locationCode} className="border-l-4 border-blue-500 pl-4">
                   <div className="font-medium text-blue-600 text-sm mb-2">{location?.Name}</div>
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <div className="font-medium">{selectedHotel.Name}</div>
-                      <div className="text-sm text-gray-600">{selectedRoom.Name}</div>
+                      <div className="space-y-1 text-sm text-gray-600">
+                        {Object.entries(hotelSelection.roomSelections || {}).map(([roomGroupId, roomSelection], roomIndex) => {
+                          // Find the room details
+                          const roomGroup = selectedHotel.RoomsOccupancy.item.find(
+                            (rg: any) => rg.RoomGroup === roomGroupId
+                          );
+                          const room = roomGroup?.Rooms.item.find((r: any) => 
+                            r.Code === roomSelection.roomCode && r.RoomNum === roomSelection.roomNum
+                          );
+                          
+                          if (!room) return null;
+                          
+                          const roomPrice = parseFloat(room.SellValue);
+                          totalHotelPrice += roomPrice;
+                          
+                          return (
+                            <div key={`${roomGroupId}-${roomSelection.roomCode}`} className="text-xs">
+                              <span className="font-medium">Quarto {roomIndex + 1}:</span> {room.Name}
+                              <span className="ml-2 text-gray-500">
+                                ({roomGroup?.NumAdults} adulto{roomGroup?.NumAdults !== '1' ? 's' : ''}
+                                {parseInt(roomGroup?.NumChilds || '0') > 0 && `, ${roomGroup?.NumChilds} criança${roomGroup?.NumChilds !== '1' ? 's' : ''}`})
+                              </span>
+                              <span className="ml-2 font-medium text-green-600">€{roomPrice.toFixed(2)}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <span className="text-lg font-bold text-green-600">€{selectedRoom.SellValue}</span>
+                    <span className="text-lg font-bold text-green-600">€{totalHotelPrice.toFixed(2)}</span>
                   </div>
                   
                   <div className="space-y-1 text-sm text-gray-600">
                     <div>Classificação: {renderStarRating(selectedHotel.Rating)}</div>
-                    <div>Regime: {selectedRoom.BoardDescription}</div>
                     <div>Check-in: {formatDate(selectedHotel.CheckIn)} | Check-out: {formatDate(selectedHotel.CheckOut)}</div>
                   </div>
                 </div>
@@ -210,14 +235,42 @@ const ReviewTab = React.memo<ReviewTabProps>(({
             const location = hotelLocations.find((loc: any) => loc.Code === locationCode);
             const hotels = location?.HotelOption?.item || [];
             const selectedHotel = hotels.find((hotel: any) => hotel.Code === hotelSelection.hotelCode);
-            const selectedRoom = selectedHotel?.RoomsOccupancy.item[0]?.Rooms.item.find((room: any) => 
-              room.Code === hotelSelection.roomCode && 
-              room.RoomNum === hotelSelection.roomNum
-            );
-            return selectedRoom && (
-              <div key={locationCode} className="flex justify-between">
-                <span>Alojamento {location?.Name === "Alojamento" ? "" : location?.Name}:</span>
-                <span>€{selectedRoom.SellValue}</span>
+            
+            if (!selectedHotel) return null;
+            
+            let totalHotelPrice = 0;
+            const roomEntries: React.ReactNode[] = [];
+            
+            Object.entries(hotelSelection.roomSelections || {}).forEach(([roomGroupId, roomSelection], roomIndex) => {
+              const roomGroup = selectedHotel.RoomsOccupancy.item.find(
+                (rg: any) => rg.RoomGroup === roomGroupId
+              );
+              const room = roomGroup?.Rooms.item.find((r: any) => 
+                r.Code === roomSelection.roomCode && r.RoomNum === roomSelection.roomNum
+              );
+              
+              if (room) {
+                const roomPrice = parseFloat(room.SellValue);
+                totalHotelPrice += roomPrice;
+                roomEntries.push(
+                  <div key={`${roomGroupId}-${roomSelection.roomCode}`} className="flex justify-between text-xs text-gray-600 ml-4">
+                    <span>
+                      Quarto {roomIndex + 1} ({roomGroup?.NumAdults} adulto{roomGroup?.NumAdults !== '1' ? 's' : ''}
+                      {parseInt(roomGroup?.NumChilds || '0') > 0 && `, ${roomGroup?.NumChilds} criança${roomGroup?.NumChilds !== '1' ? 's' : ''}`}):
+                    </span>
+                    <span>€{roomPrice.toFixed(2)}</span>
+                  </div>
+                );
+              }
+            });
+            
+            return (
+              <div key={locationCode}>
+                <div className="flex justify-between font-medium">
+                  <span>Hotel {location?.Name === "Alojamento" ? "" : `- ${location?.Name}`}:</span>
+                  <span>€{totalHotelPrice.toFixed(2)}</span>
+                </div>
+                {roomEntries}
               </div>
             );
           })}
@@ -431,57 +484,6 @@ const ReviewTab = React.memo<ReviewTabProps>(({
                   </div>
                   <div className="text-sm font-medium text-red-600">
                     Custo de cancelamento: {policy.Value}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Passenger Information Required */}
-      {simulationData?.Pax?.item && (
-        <div className="bg-blue-50 rounded-lg p-6">
-          <div 
-            className="flex items-center justify-between cursor-pointer"
-            onClick={() => toggleSection('passenger')}
-          >
-            <h3 className="text-lg font-semibold text-blue-800 flex items-center">
-              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-              </svg>
-              Informações do Passageiro
-            </h3>
-            <svg 
-              className={`w-5 h-5 transform transition-transform ${expandedSections.passenger ? 'rotate-180' : ''}`}
-              fill="currentColor" 
-              viewBox="0 0 20 20"
-            >
-              <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
-          </div>
-          
-          {expandedSections.passenger && (
-            <div className="mt-4">
-              <p className="text-sm text-blue-700 mb-4">
-                As seguintes informações serão necessárias para completar a reserva:
-              </p>
-              {simulationData.Pax.item.map((pax: any, index: number) => (
-                <div key={index} className="border border-blue-200 rounded p-3 mb-3">
-                  <div className="flex items-center mb-3">
-                    <span className="font-medium text-blue-700">
-                      Passageiro {index + 1} - Quarto {pax.Room} ({pax.Type})
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    {pax.ExtraInfo?.item?.map((info: any, infoIndex: number) => (
-                      <div key={infoIndex} className="flex items-center justify-between py-1">
-                        <span className="text-gray-600">{info.Name}:</span>
-                        <span className={`text-xs ${info.Required === 'YES' ? 'text-red-600 font-medium' : 'text-gray-500'}`}>
-                          {info.Required === 'YES' ? 'Obrigatório' : 'Opcional'}
-                        </span>
-                      </div>
-                    ))}
                   </div>
                 </div>
               ))}

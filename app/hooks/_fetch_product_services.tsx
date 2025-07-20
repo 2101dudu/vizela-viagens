@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 export default function useFetchProductServices(token: string): any {
     const [data, setData] = useState<any | null>(null);
-    const [loading, setLoading] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [isDone, setIsDone] = useState<boolean>(false);
 

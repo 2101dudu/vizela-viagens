@@ -29,6 +29,7 @@ import Sidebar from './components/Sidebar';
 import { formatTime, formatDate } from './utils/formatters';
 import { renderStarRating } from './utils/starRating';
 import { calculateLocationStarRange, updateLookupMapsWithNewRooms, updateLookupMapsWithNewFlights } from './utils/dataProcessing';
+import { base } from "framer-motion/client";
 
 export default function AvailableServicesPage() {
   const params = useParams();
@@ -133,22 +134,56 @@ export default function AvailableServicesPage() {
   }, []);
 
   // Hotel room selection handler
-  const handleHotelRoomSelection = useCallback((hotelCode: string, roomCode: string, roomNum: string) => {
+  const handleHotelRoomSelection = useCallback((hotelCode: string, roomGroupId: string, roomCode: string, roomNum: string) => {
     const currentLocation = updatedHotelLocations[bookingState.currentHotelIndex];
     if (!currentLocation) return;
 
-    setBookingState(prev => ({
-      ...prev,
-      selectedHotels: {
-        ...prev.selectedHotels,
-        [currentLocation.Code]: {
-          itineraryCode: currentLocation.Code,
-          hotelCode,
-          roomCode,
-          roomNum
-        }
+    setBookingState(prev => {
+      // If selecting a room from a different hotel, clear all selections for this location
+      const currentSelections = prev.selectedHotels[currentLocation.Code];
+      const isDifferentHotel = currentSelections && currentSelections.hotelCode !== hotelCode;
+
+      if (isDifferentHotel) {
+        // Clear all selections for this location and start fresh with the new hotel
+        return {
+          ...prev,
+          selectedHotels: {
+            ...prev.selectedHotels,
+            [currentLocation.Code]: {
+              itineraryCode: currentLocation.Code,
+              hotelCode,
+              roomSelections: {
+                [roomGroupId]: {
+                  roomCode,
+                  roomNum,
+                  roomGroupId
+                }
+              }
+            }
+          }
+        };
+      } else {
+        // Same hotel or no previous selection - add/update the room selection
+        return {
+          ...prev,
+          selectedHotels: {
+            ...prev.selectedHotels,
+            [currentLocation.Code]: {
+              itineraryCode: currentLocation.Code,
+              hotelCode,
+              roomSelections: {
+                ...currentSelections?.roomSelections,
+                [roomGroupId]: {
+                  roomCode,
+                  roomNum,
+                  roomGroupId
+                }
+              }
+            }
+          }
+        };
       }
-    }));
+    });
   }, [updatedHotelLocations, bookingState.currentHotelIndex, setBookingState]);
 
   // Tab access control
@@ -156,9 +191,19 @@ export default function AvailableServicesPage() {
     if (tab === 'flights') return true;
     if (tab.startsWith('hotels-')) return bookingState.selectedFlight !== null;
     if (tab === 'review') {
-      const allHotelLocationsSelected = updatedHotelLocations.every(location => 
-        bookingState.selectedHotels[location.Code] !== undefined
-      );
+      const allHotelLocationsSelected = updatedHotelLocations.every(location => {
+        const hotelSelection = bookingState.selectedHotels[location.Code];
+        if (!hotelSelection) return false;
+        
+        // Check if all room groups for this location have selections
+        const hotelData = location.HotelOption?.item?.find(h => h.Code === hotelSelection.hotelCode);
+        if (!hotelData) return false;
+        
+        const requiredRoomGroups = hotelData.RoomsOccupancy.item.length;
+        const selectedRoomGroups = Object.keys(hotelSelection.roomSelections || {}).length;
+        
+        return selectedRoomGroups === requiredRoomGroups;
+      });
       return bookingState.selectedFlight !== null && allHotelLocationsSelected;
     }
     return false;
@@ -194,22 +239,25 @@ export default function AvailableServicesPage() {
       ];
 
       const hotelPayload = Object.entries(bookingState.selectedHotels).map(([locationCode, hotelSelection]) => {
-        const roomKey = `${hotelSelection.hotelCode}-${hotelSelection.roomCode}-${hotelSelection.roomNum}`;
-        const selectedRoom = lookupMaps.roomsMap.get(roomKey);
-        if (!selectedRoom) {
-          throw new Error(`Invalid room selection for location ${locationCode}`);
-        }
+        // Build all room selections for this hotel
+        const roomsSelected = Object.values(hotelSelection.roomSelections).map(roomSelection => {
+          const roomKey = `${hotelSelection.hotelCode}-${roomSelection.roomCode}-${roomSelection.roomNum}`;
+          const selectedRoom = lookupMaps.roomsMap.get(roomKey);
+          if (!selectedRoom) {
+            throw new Error(`Invalid room selection for location ${locationCode}, room ${roomSelection.roomCode}`);
+          }
+
+          return {
+            RoomCode: roomSelection.roomCode,
+            RoomNum: roomSelection.roomNum
+          };
+        });
 
         return {
           ItineraryCode: hotelSelection.itineraryCode,
           HotelSelected: hotelSelection.hotelCode,
           RoomsSelected: {
-            item: [
-              {
-                RoomCode: hotelSelection.roomCode,
-                RoomNum: hotelSelection.roomNum
-              }
-            ]
+            item: roomsSelected
           },
         };
       });
@@ -415,7 +463,11 @@ export default function AvailableServicesPage() {
     location.HotelOption?.item && location.HotelOption.item.length > 0
   );
   
-  if (error || !data || baseData.flightOptions.length === 0 || !hasHotels) {
+  const hasFlightOptions = baseData?.flightOptions?.length > 0;
+  const shouldShowError = !loading && (error || !hasFlightOptions || !hasHotels);
+  
+  // Only show error state when not loading and either there's an error or no data available
+  if (shouldShowError) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center text-red-600 max-w-md">
@@ -520,7 +572,7 @@ export default function AvailableServicesPage() {
               <HotelTab 
                 currentLocation={filteredData.currentLocation}
                 filteredHotels={filteredData.filteredHotels}
-                selectedHotel={bookingState.selectedHotels[filteredData.currentLocation?.Code || ''] || null}
+                selectedHotelData={bookingState.selectedHotels[filteredData.currentLocation?.Code || ''] || null}
                 onRoomSelection={handleHotelRoomSelection}
                 renderStarRating={renderStarRating}
                 formatDate={formatDate}
