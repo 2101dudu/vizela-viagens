@@ -39,7 +39,6 @@ export default function useFetchProductServices(token: string): any {
             return false;
 
         } catch (err) {
-            console.error("Error fetching product services:", err);
             setError(err instanceof Error ? err.message : "An unknown error occurred");
             setLoading(false);
             return true;
