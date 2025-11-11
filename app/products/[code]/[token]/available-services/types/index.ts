@@ -123,6 +123,9 @@ export interface ProductData {
     FlightMainGroup: {
       item: Array<{
         Description: string;
+        FlightOptions: {
+          item: FlightOption[];
+        };
         FlightOptionsSuperBB: {
           item: FlightOption[];
         };

@@ -70,7 +70,7 @@ export const useFilters = () => {
 export const useDataProcessing = (productData: ProductData | null) => {
   // Memoize base data arrays
   const baseData = useMemo(() => {
-    const flightOptions = productData?.data?.FlightMainGroup?.item?.[0]?.FlightOptionsSuperBB?.item || [];
+    const flightOptions = productData?.data?.FlightMainGroup?.item?.[0]?.FlightOptionsSuperBB?.item || productData?.data?.FlightMainGroup?.item?.[0]?.FlightOptions?.item || [];
     const hotelLocations = productData?.data?.Itinerary?.item || [];
     
     return { flightOptions, hotelLocations };

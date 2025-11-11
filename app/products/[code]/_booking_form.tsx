@@ -48,6 +48,7 @@ export interface ApiData {
   DepartureDates: { item: DepartureDate[] };
   RoomTypes: { item: RoomType[] };
   BaseLocals: { item: BaseLocal[] };
+  Errors: { HasErrors: string };
 }
 
 interface BookingFormProps {
@@ -56,6 +57,29 @@ interface BookingFormProps {
 
 export default function BookingForm({ data }: BookingFormProps) {
   const router = useRouter();
+  
+
+  if (data.Errors.HasErrors === "YES") {
+    return (
+      <div className="flex flex-col items-center justify-center px-4 py-8 max-w-md">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+          <div className="text-red-600 text-lg font-medium mb-4">
+            Erro ao carregar informações
+          </div>
+          <p className="text-red-700 mb-6">
+            Ocorreu um erro ao carregar as informações de reserva do produto.
+          </p>
+          <button
+            onClick={() => router.back()}
+            className="bg-red-600 hover:bg-red-700 text-white py-3 px-6 rounded-xl font-medium transition-colors"
+          >
+            Voltar à página anterior
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const params = useParams();
   const code = params.code; // code from URL
 

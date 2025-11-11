@@ -33,15 +33,15 @@ export default function NavBar() {
     <>
       <div className="bg-background w-full fixed h-20 z-50">
         <div className="flex items-center justify-between w-4/5 mx-auto h-full">
-          <div className="flex justify-between items-center gap-5">
-            <_Button
-              href="/"
-              imageSrc="/logo_square.svg"
-              imageAlt="VizelaViagens logo"
-              imageW={250}
-              imageH={100}
-              imagePrio={true}
-            />
+          <_Button
+            href="/"
+            imageSrc="/logo_square.svg"
+            imageAlt="VizelaViagens logo"
+            imageW={250}
+            imageH={100}
+            imagePrio={true}
+          />
+          <div className="w-auto flex justify-between items-center gap-5">
             {/* Dropdown Button */}
             <div className="relative" ref={dropdownRef}
               onMouseEnter={() => setIsOpen(true)}
@@ -79,10 +79,7 @@ export default function NavBar() {
                 </div>
               )}
               </div>
-            </div>
-            <div className="w-auto flex justify-between items-center gap-5">
               <_Button href="#groups">Grupos</_Button>
-              <_Button highlighted>Pedir Orçamento</_Button>
             </div>
           </div>
         </div>
