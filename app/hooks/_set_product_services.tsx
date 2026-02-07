@@ -1,4 +1,4 @@
-export interface SetServicesPayload {  
+export interface SetServicesPayload {
     SessionHash: string;
     FlightsSelectedSuperBB: {
         item: Array<{
@@ -23,10 +23,22 @@ export interface SetServicesPayload {
             };
         }>;
     };
+    OptionalsSelected?: {
+        item: Array<{
+            Code: string;
+            Date?: string;
+            Adults?: string;
+            ChildAges?: string;
+            PickUp?: string;
+            PickUpTime?: string;
+            Drop?: string;
+            ItemId?: string;
+        }>;
+    };
 }
 
 export default async function SetProductServices(prodCode:string, payload: SetServicesPayload) {
-    const res = await fetch(`http://192.168.1.207:8080/api/dynamic/product/set-services?prodCode=${prodCode}`, {
+    const res = await fetch(`http://192.168.1.182:8080/api/dynamic/product/set-services?prodCode=${prodCode}`, {
       method: "POST",
       body: JSON.stringify(payload),
       headers: { "Content-Type": "application/json" }
