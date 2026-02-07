@@ -152,7 +152,7 @@ export interface ProductData {
 }
 
 export interface BookingState {
-  currentTab: 'flights' | string | 'review';
+  currentTab: 'flights' | string | 'optionals' | 'review';
   currentHotelIndex: number;
   selectedFlight: {
     optionCode: string;
@@ -174,6 +174,81 @@ export interface BookingState {
     };
   };
   selectedInsurance: string;
+  selectedOptionals: {
+    [optionalCode: string]: OptionalServiceSelection;
+  };
+}
+
+// Optional Services Types
+export interface DynPickupTime {
+  Time?: string;
+  Description?: string;
+}
+
+export interface DynPickupTimeArray {
+  item: DynPickupTime[];
+}
+
+export interface DynDate {
+  Date?: string;
+  Available?: string;
+}
+
+export interface DynDatesArray {
+  item: DynDate[];
+}
+
+export interface DynChildPrice {
+  Age?: string;
+  Price?: string;
+}
+
+export interface DynChildPriceArray {
+  item: DynChildPrice[];
+}
+
+export interface DynOptional {
+  Code?: string;
+  ItemId?: string;
+  ItemDescription?: string;
+  Type?: string; // "TRF" (transfer), "ACT" (activity), "EXC" (excursion)
+  Name?: string;
+  ShortDescription?: string;
+  LongDescription?: string;
+  FromType?: string;
+  ToType?: string;
+  FromDetails?: string; // Transfer pickup location
+  ToDetails?: string;   // Transfer dropoff location
+  Price?: string;
+  PriceType?: string;   // "PER_PERSON", "PER_GROUP"
+  SelectAllPax?: string;
+  ContractBuyId?: string;
+  ContractSellId?: string;
+  Localization?: string;
+  Zone?: string;
+  ImageURI?: string;
+  PreSelDate?: string;
+  PacoteDias?: string;
+  Mandatory?: string;       // "Y" or "N"
+  UniqueSelect?: string;    // "Y" (radio) or "N" (checkbox)
+  PickupTime?: DynPickupTimeArray;
+  Dates?: DynDatesArray;
+  PriceChilds?: DynChildPriceArray;
+  Suplements?: any; // Define if needed
+}
+
+export interface DynOptionalsArray {
+  item: DynOptional[];
+}
+
+export interface OptionalServiceSelection {
+  optional: DynOptional;
+  date?: string;
+  pickupTime?: string;
+  pickupLocation?: string;
+  dropoffLocation?: string;
+  adults: number;
+  childAges: number[];
 }
 
 // Extended interfaces for components
