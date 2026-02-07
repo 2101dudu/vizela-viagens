@@ -398,7 +398,36 @@ const Sidebar = React.memo<SidebarProps>(({
                     </div>
                   );
                 })()}
-                
+
+                {/* Optional Services */}
+                {Object.values(bookingState.selectedOptionals || {}).map((selection, idx) => {
+                  const calculateOptionalPrice = (sel: any) => {
+                    const basePrice = parseFloat(sel.optional.Price || '0');
+                    if (sel.optional.PriceType === 'PER_PERSON') {
+                      let totalPrice = basePrice * sel.adults;
+                      if (sel.optional.PriceChilds?.item) {
+                        sel.childAges.forEach((age: number) => {
+                          const childPrice = sel.optional.PriceChilds?.item.find(
+                            (cp: any) => parseInt(cp.Age || '0') === age
+                          );
+                          totalPrice += childPrice ? parseFloat(childPrice.Price || '0') : basePrice;
+                        });
+                      } else {
+                        totalPrice += basePrice * sel.childAges.length;
+                      }
+                      return totalPrice;
+                    }
+                    return basePrice;
+                  };
+
+                  return (
+                    <div key={idx} className="flex justify-between text-sm">
+                      <span>{selection.optional.Name}:</span>
+                      <span>€{calculateOptionalPrice(selection).toFixed(2)}</span>
+                    </div>
+                  );
+                })}
+
                 <div className="border-t pt-2 mt-3 flex justify-between font-bold text-lg">
                   <span>Total:</span>
                   <span className="text-blue-600">€{totalPrice.toFixed(2)}</span>
