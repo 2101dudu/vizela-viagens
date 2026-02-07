@@ -60,10 +60,12 @@ const ProductCard = React.memo(({
           ${!enabled ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg cursor-pointer'}`}
         aria-disabled={!enabled}
       >
-        <div className="flex w-32 items-center space-x-4">
+        <div className="flex w-52 items-center space-x-4">
           <Image
             src={product.product.ImageUrl || '/fallback.png'}
             alt={product.product.Name || 'Product'}
+            width={208}
+            height={208}
             className="w-20 h-20 object-cover rounded-lg"
             onError={(e) => {
               (e.target as HTMLImageElement).src = '/fallback.png';
@@ -271,7 +273,7 @@ export default function ProductManagementTab() {
         return;
       }
 
-      const response = await fetch(`http://192.168.1.120:8080/api/admin/products/${productCode}/tags/add`, {
+      const response = await fetch(`http://192.168.1.207:8080/api/admin/products/${productCode}/tags/add`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -315,7 +317,7 @@ export default function ProductManagementTab() {
         return;
       }
 
-      const response = await fetch(`http://192.168.1.120:8080/api/admin/products/${productCode}/tags/remove/${optionToRemove}`, {
+      const response = await fetch(`http://192.168.1.207:8080/api/admin/products/${productCode}/tags/remove/${optionToRemove}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -352,7 +354,7 @@ export default function ProductManagementTab() {
         return;
       }
 
-      const url = `http://192.168.1.120:8080/api/admin/products/${productCode}/toggle`;
+      const url = `http://192.168.1.207:8080/api/admin/products/${productCode}/toggle`;
       const response = await fetch(url, {
         method: 'POST',
         headers: {

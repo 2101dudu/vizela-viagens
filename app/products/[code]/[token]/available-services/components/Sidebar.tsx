@@ -185,7 +185,7 @@ const Sidebar = React.memo<SidebarProps>(({
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(`http://192.168.1.120:8080/api/dynamic/product/send-email?token=${token}`, {
+      const response = await fetch(`http://192.168.1.207:8080/api/dynamic/product/send-email?token=${token}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

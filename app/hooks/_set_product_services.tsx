@@ -26,7 +26,7 @@ export interface SetServicesPayload {
 }
 
 export default async function SetProductServices(prodCode:string, payload: SetServicesPayload) {
-    const res = await fetch(`http://192.168.1.120:8080/api/dynamic/product/set-services?prodCode=${prodCode}`, {
+    const res = await fetch(`http://192.168.1.207:8080/api/dynamic/product/set-services?prodCode=${prodCode}`, {
       method: "POST",
       body: JSON.stringify(payload),
       headers: { "Content-Type": "application/json" }
