@@ -108,10 +108,13 @@ export default function AvailableServicesPage() {
                 if (hotel) {
                   hotel.RoomsOccupancy.item.forEach((roomGroup: any) => {
                     adults += parseInt(roomGroup.NumAdults || '0');
-                    // Assuming child ages are stored somewhere, for now use count
+                    // NOTE: RoomGroup API only provides NumChilds (count), not individual ages
+                    // Child ages are submitted during initial search but not returned in the API response
+                    // Using default age of 10 for price calculation - may not match age-specific pricing
+                    // TODO: Either pass child ages via URL params or request API enhancement
                     const numChildren = parseInt(roomGroup.NumChilds || '0');
                     for (let i = 0; i < numChildren; i++) {
-                      childAges.push(10); // Default age, ideally get from actual data
+                      childAges.push(10); // Default fallback age
                     }
                   });
                 }
@@ -280,6 +283,8 @@ export default function AvailableServicesPage() {
     }
 
     // Review tab accessible after optionals tab is visited (user has seen optionals)
+    // Note: If user goes back to change hotels, they must revisit optionals tab before review
+    // This ensures they re-confirm optional services if passenger counts change
     if (tab === 'review') {
       const optionalsVisited = optionals.length === 0 || bookingState.currentTab === 'optionals' || bookingState.currentTab === 'review';
       return bookingState.selectedFlight !== null && allHotelLocationsSelected && optionalsVisited;

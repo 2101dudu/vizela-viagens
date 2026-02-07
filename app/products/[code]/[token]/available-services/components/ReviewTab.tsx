@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BookingState, ProductData, DynGetSimulationResponse } from '../types';
+import { calculateOptionalPrice, getOptionalTypeIcon } from '../utils/optionalsHelpers';
 
 interface ReviewTabProps {
   bookingState: BookingState;
@@ -228,39 +229,13 @@ const ReviewTab = React.memo<ReviewTabProps>(({
           </h3>
           <div className="space-y-3">
             {Object.values(bookingState.selectedOptionals).map((selection, idx) => {
-              const calculateOptionalPrice = (sel: any) => {
-                const basePrice = parseFloat(sel.optional.Price || '0');
-                if (sel.optional.PriceType === 'PER_PERSON') {
-                  let totalPrice = basePrice * sel.adults;
-                  if (sel.optional.PriceChilds?.item && sel.optional.PriceChilds.item.length > 0) {
-                    sel.childAges.forEach((age: number) => {
-                      const childPrice = sel.optional.PriceChilds?.item.find(
-                        (cp: any) => parseInt(cp.Age || '0') === age
-                      );
-                      totalPrice += childPrice ? parseFloat(childPrice.Price || '0') : basePrice;
-                    });
-                  } else {
-                    totalPrice += basePrice * sel.childAges.length;
-                  }
-                  return totalPrice;
-                } else {
-                  return basePrice;
-                }
-              };
-
               const price = calculateOptionalPrice(selection);
-              const getTypeIcon = (type?: string) => {
-                const icons: { [key: string]: string } = {
-                  'TRF': '🚌', 'EXC': '🎯', 'ACT': '🏃', 'TOUR': '🗺️', 'OTHER': '📋'
-                };
-                return icons[type || 'OTHER'] || icons['OTHER'];
-              };
 
               return (
                 <div key={idx} className="border-l-4 border-purple-500 pl-4 bg-white rounded-r p-3">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <span>{getTypeIcon(selection.optional.Type)}</span>
+                      <span>{getOptionalTypeIcon(selection.optional.Type || '')}</span>
                       <div className="font-medium text-gray-800">{selection.optional.Name}</div>
                     </div>
                     <span className="text-lg font-bold text-green-600">
@@ -381,33 +356,12 @@ const ReviewTab = React.memo<ReviewTabProps>(({
           })()}
 
           {/* Optional Services in Price Summary */}
-          {Object.values(bookingState.selectedOptionals || {}).map((selection, idx) => {
-            const calculatePrice = (sel: any) => {
-              const basePrice = parseFloat(sel.optional.Price || '0');
-              if (sel.optional.PriceType === 'PER_PERSON') {
-                let totalPrice = basePrice * sel.adults;
-                if (sel.optional.PriceChilds?.item) {
-                  sel.childAges.forEach((age: number) => {
-                    const childPrice = sel.optional.PriceChilds?.item.find(
-                      (cp: any) => parseInt(cp.Age || '0') === age
-                    );
-                    totalPrice += childPrice ? parseFloat(childPrice.Price || '0') : basePrice;
-                  });
-                } else {
-                  totalPrice += basePrice * sel.childAges.length;
-                }
-                return totalPrice;
-              }
-              return basePrice;
-            };
-
-            return (
-              <div key={idx} className="flex justify-between text-sm">
-                <span>{selection.optional.Name}:</span>
-                <span>€{calculatePrice(selection).toFixed(2)}</span>
-              </div>
-            );
-          })}
+          {Object.values(bookingState.selectedOptionals || {}).map((selection, idx) => (
+            <div key={idx} className="flex justify-between text-sm">
+              <span>{selection.optional.Name}:</span>
+              <span>€{calculateOptionalPrice(selection).toFixed(2)}</span>
+            </div>
+          ))}
 
           <div className="border-t pt-2 mt-2 flex justify-between font-bold text-lg">
             <span>Total:</span>
