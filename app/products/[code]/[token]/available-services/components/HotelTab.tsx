@@ -90,10 +90,11 @@ const HotelTab = React.memo<HotelTabProps>(({
       </h2>
       
       {/* Hotel Filters */}
-      <HotelFiltersComponent 
+      <HotelFiltersComponent
         filters={hotelFilters}
         onFiltersChange={onFiltersChange}
         starRange={starRange}
+        totalHotels={allHotels.length}
       />
       
       <div className="space-y-6 mb-6">
