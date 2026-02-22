@@ -1,7 +1,7 @@
 import { FlightOption } from '../types';
 
 export default async function FetchMoreFlights(token: string, cursor: number, limit: number = 5) {
-  const url = new URL("http://192.168.1.207:8080/api/dynamic/product/available-services/flights/page");
+  const url = new URL("http://192.168.1.140:8080/api/dynamic/product/available-services/flights/page");
   url.searchParams.set("token", token);
   url.searchParams.set("cursor", cursor.toString());
   url.searchParams.set("limit", limit.toString());

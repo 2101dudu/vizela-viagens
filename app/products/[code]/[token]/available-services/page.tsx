@@ -404,7 +404,7 @@ export default function AvailableServicesPage() {
       setIsSimulationPrefetchInProgress(true);
       setHasPrefetchedSimulation(true);
       
-      const response = await fetch(`http://192.168.1.207:8080/api/dynamic/product/get-simulation?token=${simulToken}`);
+      const response = await fetch(`http://192.168.1.140:8080/api/dynamic/product/get-simulation?token=${simulToken}`);
       
       if (!response.ok) {
         console.error(`Failed to fetch simulation data: ${response.status}`);
