@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import React, { useState, useCallback } from "react";
+import { API_BASE_URL } from "@/app/config";
 import useFetchProductServices from "@/app/hooks/_fetch_product_services";
 import SetProductServices, { SetServicesPayload } from "@/app/hooks/_set_product_services";
 
@@ -404,7 +405,7 @@ export default function AvailableServicesPage() {
       setIsSimulationPrefetchInProgress(true);
       setHasPrefetchedSimulation(true);
       
-      const response = await fetch(`http://192.168.1.140:8080/api/dynamic/product/get-simulation?token=${simulToken}`);
+      const response = await fetch(`${API_BASE_URL}/dynamic/product/get-simulation?token=${simulToken}`);
       
       if (!response.ok) {
         console.error(`Failed to fetch simulation data: ${response.status}`);

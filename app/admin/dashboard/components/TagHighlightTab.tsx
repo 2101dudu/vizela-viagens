@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import FetchHighlightedTag from '@/app/hooks/_fetch_highlighted_tag';
+import { API_BASE_URL } from "@/app/config";
 
 const optionChoices = [
   { value: "charter", label: "charter" },
@@ -40,7 +41,7 @@ export default function TagHighlightTab() {
         return;
       }
       
-      const res = await fetch(`http://192.168.1.140:8080/api/admin/page/highlight/${highlightedTag}`, {
+      const res = await fetch(`${API_BASE_URL}/admin/page/highlight/${highlightedTag}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,

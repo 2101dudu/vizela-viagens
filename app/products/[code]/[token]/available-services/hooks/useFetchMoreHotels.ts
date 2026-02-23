@@ -1,7 +1,8 @@
 import { Hotel } from '../types';
+import { API_BASE_URL } from "@/app/config";
 
 export default async function FetchMoreHotels(token: string, cursor: number, limit: number = 5) {
-  const url = new URL("http://192.168.1.140:8080/api/dynamic/product/available-services/hotels/page");
+  const url = new URL(`${API_BASE_URL}/dynamic/product/available-services/hotels/page`);
   url.searchParams.set("token", token);
   url.searchParams.set("cursor", cursor.toString());
   url.searchParams.set("limit", limit.toString());

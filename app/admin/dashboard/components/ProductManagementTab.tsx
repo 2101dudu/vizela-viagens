@@ -7,6 +7,7 @@ import Select from 'react-select';
 import { _get_product_list, ProductWrapper } from '../../admin_hooks/_get_product_list';
 import Link from 'next/dist/client/link';
 import { FixedSizeList as List } from 'react-window';
+import { API_BASE_URL } from "@/app/config";
 
 const optionChoices = [
   { value: "charter", label: "charter" },
@@ -273,7 +274,7 @@ export default function ProductManagementTab() {
         return;
       }
 
-      const response = await fetch(`http://192.168.1.140:8080/api/admin/products/${productCode}/tags/add`, {
+      const response = await fetch(`${API_BASE_URL}/admin/products/${productCode}/tags/add`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -317,7 +318,7 @@ export default function ProductManagementTab() {
         return;
       }
 
-      const response = await fetch(`http://192.168.1.140:8080/api/admin/products/${productCode}/tags/remove/${optionToRemove}`, {
+      const response = await fetch(`${API_BASE_URL}/admin/products/${productCode}/tags/remove/${optionToRemove}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -354,7 +355,7 @@ export default function ProductManagementTab() {
         return;
       }
 
-      const url = `http://192.168.1.140:8080/api/admin/products/${productCode}/toggle`;
+      const url = `${API_BASE_URL}/admin/products/${productCode}/toggle`;
       const response = await fetch(url, {
         method: 'POST',
         headers: {

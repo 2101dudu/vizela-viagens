@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE_URL } from "@/app/config";
 import { BookingState, ProductData, LookupMaps } from '../types';
 
 interface SidebarProps {
@@ -185,7 +186,7 @@ const Sidebar = React.memo<SidebarProps>(({
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(`http://192.168.1.140:8080/api/dynamic/product/send-email?token=${token}`, {
+      const response = await fetch(`${API_BASE_URL}/dynamic/product/send-email?token=${token}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,4 +1,6 @@
-export interface SetServicesPayload {  
+import { API_BASE_URL } from "@/app/config";
+
+export interface SetServicesPayload {
     SessionHash: string;
     FlightsSelectedSuperBB: {
         item: Array<{
@@ -26,7 +28,7 @@ export interface SetServicesPayload {
 }
 
 export default async function SetProductServices(prodCode:string, payload: SetServicesPayload) {
-    const res = await fetch(`http://192.168.1.140:8080/api/dynamic/product/set-services?prodCode=${prodCode}`, {
+    const res = await fetch(`${API_BASE_URL}/dynamic/product/set-services?prodCode=${prodCode}`, {
       method: "POST",
       body: JSON.stringify(payload),
       headers: { "Content-Type": "application/json" }

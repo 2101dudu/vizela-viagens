@@ -1,3 +1,5 @@
+import { API_BASE_URL } from "@/app/config";
+
 export interface Product {
   Code?: string;
   Name?: string;
@@ -17,7 +19,7 @@ export const _get_product_list = async (): Promise<ProductWrapper[]> => {
     const token = localStorage.getItem('adminToken');
     if (!token) throw new Error('No authentication token found');
 
-    const response = await fetch('http://192.168.1.140:8080/api/admin/products', {
+    const response = await fetch(`${API_BASE_URL}/admin/products`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',

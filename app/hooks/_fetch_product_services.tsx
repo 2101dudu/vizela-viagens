@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { API_BASE_URL } from "@/app/config";
 
 export default function useFetchProductServices(token: string): any {
     const [data, setData] = useState<any | null>(null);
@@ -10,7 +11,7 @@ export default function useFetchProductServices(token: string): any {
 
     const fetchData = useCallback(async () => {
         try {
-            const res = await fetch(`http://192.168.1.140:8080/api/dynamic/product/available-services/status?id=${token}`);
+            const res = await fetch(`${API_BASE_URL}/dynamic/product/available-services/status?id=${token}`);
 
             if (!res.ok) {
                 throw new Error(`Failed to fetch product: ${res.status}`);
