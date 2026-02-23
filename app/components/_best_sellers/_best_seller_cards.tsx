@@ -2,7 +2,7 @@
 
 import BestSellerCard from "./_best_seller_card";
 import { _FadeIn } from "@/app/components/";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import SearchProducts from "@/app/hooks/_search_products";
 
 interface Product {
@@ -14,7 +14,7 @@ interface PaginatedResponse {
   hasMore: boolean;
 }
 
-export default function _BestSellerCards({ tag }: { tag: string }) {
+export default function BestSellerCards({ tag }: { tag: string }) {
   const elements = [
     { className: "col-span-2 row-span-2" }, // element 1
     { className: "col-span-1 row-span-1" }, // element 2

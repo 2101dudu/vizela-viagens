@@ -1,7 +1,7 @@
 import Image from "next/legacy/image";
 import { _FadeIn } from "@/app/components/";
 
-export default interface ReviewEntry {
+export interface ReviewEntry {
   name: string;
   review: string;
   photo?: string;
