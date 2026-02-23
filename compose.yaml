@@ -1,0 +1,17 @@
+services:
+  vizela-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vizela-viagens-web
+    restart: always
+    environment:
+      - NODE_ENV=production
+    networks:
+      exposed:
+        ipv4_address: 172.30.0.190
+
+networks:
+  exposed:
+    external: true
+    name: blackmesa
