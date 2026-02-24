@@ -52,7 +52,7 @@ const ProductCard = React.memo(({
   }, [dropdownSelections, code, availableOptions]);
 
   return (
-    <div className="w-full relative"
+    <div className="w-full relative min-h-[180px]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       >
@@ -118,6 +118,13 @@ const ProductCard = React.memo(({
               placeholder={availableOptions.length === 0 ? "Todas as tags já estão adicionadas" : "Selecionar opções..."}
               className="text-sm"
               isDisabled={isSubmitting[code] || availableOptions.length === 0 || !enabled}
+              menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+              menuPosition="fixed"
+              menuPlacement="auto"
+              styles={{
+                menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                menu: (base) => ({ ...base, zIndex: 9999 }),
+              }}
             />
           </div>
         </div>
@@ -525,7 +532,7 @@ export default function ProductManagementTab() {
           <List
             height={600}
             itemCount={filteredProducts.length}
-            itemSize={200}
+            itemSize={210}
             width={"100%"}
           >
             {({ index, style }: { index: number; style: React.CSSProperties }) => (

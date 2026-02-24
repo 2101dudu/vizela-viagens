@@ -60,6 +60,9 @@ const FlightOptionCard = React.memo<FlightOptionCardProps>(({
               )}
             </div>
           )}
+          <span className="ml-3 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+            Reservar até: {formatDate(option.Lasttkdt)}
+          </span>
         </div>
         <div className="text-right">
           <div className="text-2xl font-bold text-green-600">
@@ -68,16 +71,6 @@ const FlightOptionCard = React.memo<FlightOptionCardProps>(({
           <div className="text-sm text-gray-500">
             +€{option.CheapestDifPax} vs mais barato
           </div>
-        </div>
-      </div>
-
-      {/* Price Breakdown */}
-      <div className="text-sm text-gray-600 mb-4 pb-4 border-b border-gray-200">
-        <div className="flex justify-between items-center">
-          <span>Taxa Base: €{option.RateTaxVal}</span>
-          <span>Suplementos: €{option.SuplementsTotalVal}</span>
-          <span>Taxas: €{option.Tax}</span>
-          <span className="text-xs text-gray-500">Reservar até: {formatDate(option.Lasttkdt)}</span>
         </div>
       </div>
 

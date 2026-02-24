@@ -5,15 +5,17 @@ interface HotelFiltersComponentProps {
   filters: HotelFilters;
   onFiltersChange: (filters: HotelFilters) => void;
   starRange: Range;
+  totalHotels: number;
 }
 
 const HotelFiltersComponent = React.memo<HotelFiltersComponentProps>(({
   filters,
   onFiltersChange,
-  starRange
+  starRange,
+  totalHotels
 }) => {
-  // Check if we have a valid star range (min !== max and both are greater than 0)
-  if (!starRange || starRange.max <= starRange.min || starRange.max === 0) {
+  // Show filters if there are multiple hotels available
+  if (!starRange || totalHotels <= 1 || starRange.max === 0) {
     return null;
   }
 

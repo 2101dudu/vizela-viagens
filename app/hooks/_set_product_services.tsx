@@ -25,6 +25,18 @@ export interface SetServicesPayload {
             };
         }>;
     };
+    OptionalsSelected?: {
+        item: Array<{
+            Code: string;
+            Date?: string;
+            Adults?: string;
+            ChildAges?: string;
+            PickUp?: string;
+            PickUpTime?: string;
+            Drop?: string;
+            ItemId?: string;
+        }>;
+    };
 }
 
 export default async function SetProductServices(prodCode:string, payload: SetServicesPayload) {

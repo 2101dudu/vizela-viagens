@@ -21,7 +21,8 @@ export const useBookingState = () => {
     currentHotelIndex: 0,
     selectedFlight: null,
     selectedHotels: {},
-    selectedInsurance: 'included'
+    selectedInsurance: 'included',
+    selectedOptionals: {}
   });
 
   const [selectedFlights, setSelectedFlights] = useState<{[optionCode: string]: {[segmentCode: string]: string}}>({});
@@ -159,7 +160,35 @@ export const usePriceCalculation = (
         total += calculateInsurancePrice(upgrade);
       }
     }
-    
+
+    // Optional services prices
+    Object.values(bookingState.selectedOptionals || {}).forEach(selection => {
+      const basePrice = parseFloat(selection.optional.Price || '0');
+
+      if (selection.optional.PriceType === 'PER_PERSON') {
+        // Calculate price per person
+        let optionalTotal = basePrice * selection.adults;
+
+        // Handle child pricing
+        if (selection.optional.PriceChilds?.item && selection.optional.PriceChilds.item.length > 0) {
+          selection.childAges.forEach(age => {
+            const childPrice = selection.optional.PriceChilds?.item.find(
+              cp => parseInt(cp.Age || '0') === age
+            );
+            optionalTotal += childPrice ? parseFloat(childPrice.Price || '0') : basePrice;
+          });
+        } else {
+          // No specific child pricing, use base price for children
+          optionalTotal += basePrice * selection.childAges.length;
+        }
+
+        total += optionalTotal;
+      } else {
+        // PER_GROUP pricing
+        total += basePrice;
+      }
+    });
+
     return total;
   }, [bookingState, lookupMaps, productData]);
 };

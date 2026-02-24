@@ -5,9 +5,10 @@ import React, { useState, useCallback } from "react";
 import { API_BASE_URL } from "@/app/config";
 import useFetchProductServices from "@/app/hooks/_fetch_product_services";
 import SetProductServices, { SetServicesPayload } from "@/app/hooks/_set_product_services";
+import FetchOptionals from "@/app/hooks/_fetch_optionals";
 
 // Import types
-import { ProductData, BookingState } from './types';
+import { ProductData, BookingState, DynOptional, OptionalServiceSelection } from './types';
 
 // Import custom hooks
 import { 
@@ -23,6 +24,7 @@ import { useFlightSelection } from './hooks/useFlightSelection';
 import TabNavigation from './components/TabNavigation';
 import FlightTab from './components/FlightTab';
 import HotelTab from './components/HotelTab';
+import OptionalsTab from './components/OptionalsTab';
 import ReviewTab from './components/ReviewTab';
 import Sidebar from './components/Sidebar';
 
@@ -54,6 +56,11 @@ export default function AvailableServicesPage() {
   const [lookupMaps, setLookupMaps] = useState(initialLookupMaps);
   const [updatedHotelLocations, setUpdatedHotelLocations] = useState(baseData.hotelLocations);
   const [updatedFlightOptions, setUpdatedFlightOptions] = useState(baseData.flightOptions);
+
+  // State for optional services
+  const [optionals, setOptionals] = useState<DynOptional[]>([]);
+  const [optionalsLoading, setOptionalsLoading] = useState(false);
+  const [optionalsError, setOptionalsError] = useState<string | null>(null);
   
   // Update lookup maps when initial data changes
   React.useEffect(() => {
@@ -69,6 +76,71 @@ export default function AvailableServicesPage() {
   React.useEffect(() => {
     setUpdatedFlightOptions(baseData.flightOptions);
   }, [baseData.flightOptions]);
+
+  // Fetch optional services
+  React.useEffect(() => {
+    const fetchOptionals = async () => {
+      if (!SessionHash || !code) return;
+
+      setOptionalsLoading(true);
+      setOptionalsError(null);
+
+      try {
+        const data = await FetchOptionals(SessionHash, code);
+        setOptionals(data);
+
+        // Auto-select mandatory optionals
+        const mandatory = data.filter((opt: DynOptional) => opt.Mandatory === 'Y');
+        if (mandatory.length > 0) {
+          setBookingState(prev => {
+            const newOptionals = { ...prev.selectedOptionals };
+
+            mandatory.forEach((opt: DynOptional) => {
+              // Calculate default passenger counts from hotel selections
+              let adults = 0;
+              const childAges: number[] = [];
+
+              Object.values(prev.selectedHotels).forEach((hotelSel: any) => {
+                const location = baseData.hotelLocations.find((loc: any) =>
+                  loc.HotelOption?.item?.some((h: any) => h.Code === hotelSel.hotelCode)
+                );
+                const hotel = location?.HotelOption?.item?.find((h: any) => h.Code === hotelSel.hotelCode);
+
+                if (hotel) {
+                  hotel.RoomsOccupancy.item.forEach((roomGroup: any) => {
+                    adults += parseInt(roomGroup.NumAdults || '0');
+                    // NOTE: RoomGroup API only provides NumChilds (count), not individual ages
+                    // Child ages are submitted during initial search but not returned in the API response
+                    // Using default age of 10 for price calculation - may not match age-specific pricing
+                    // TODO: Either pass child ages via URL params or request API enhancement
+                    const numChildren = parseInt(roomGroup.NumChilds || '0');
+                    for (let i = 0; i < numChildren; i++) {
+                      childAges.push(10); // Default fallback age
+                    }
+                  });
+                }
+              });
+
+              newOptionals[opt.Code || ''] = {
+                optional: opt,
+                adults: adults || 1,
+                childAges
+              };
+            });
+
+            return { ...prev, selectedOptionals: newOptionals };
+          });
+        }
+      } catch (err: any) {
+        setOptionalsError(err.message || 'Erro ao carregar serviços opcionais');
+        setOptionals([]);
+      } finally {
+        setOptionalsLoading(false);
+      }
+    };
+
+    fetchOptionals();
+  }, [SessionHash, code, baseData.hotelLocations]);
 
   // Get current location filters for proper dependency tracking
   const currentLocationCode = updatedHotelLocations[bookingState.currentHotelIndex]?.Code || '';
@@ -191,24 +263,36 @@ export default function AvailableServicesPage() {
   const canAccessTab = useCallback((tab: string) => {
     if (tab === 'flights') return true;
     if (tab.startsWith('hotels-')) return bookingState.selectedFlight !== null;
-    if (tab === 'review') {
-      const allHotelLocationsSelected = updatedHotelLocations.every(location => {
-        const hotelSelection = bookingState.selectedHotels[location.Code];
-        if (!hotelSelection) return false;
-        
-        // Check if all room groups for this location have selections
-        const hotelData = location.HotelOption?.item?.find(h => h.Code === hotelSelection.hotelCode);
-        if (!hotelData) return false;
-        
-        const requiredRoomGroups = hotelData.RoomsOccupancy.item.length;
-        const selectedRoomGroups = Object.keys(hotelSelection.roomSelections || {}).length;
-        
-        return selectedRoomGroups === requiredRoomGroups;
-      });
+
+    const allHotelLocationsSelected = updatedHotelLocations.every(location => {
+      const hotelSelection = bookingState.selectedHotels[location.Code];
+      if (!hotelSelection) return false;
+
+      // Check if all room groups for this location have selections
+      const hotelData = location.HotelOption?.item?.find(h => h.Code === hotelSelection.hotelCode);
+      if (!hotelData) return false;
+
+      const requiredRoomGroups = hotelData.RoomsOccupancy.item.length;
+      const selectedRoomGroups = Object.keys(hotelSelection.roomSelections || {}).length;
+
+      return selectedRoomGroups === requiredRoomGroups;
+    });
+
+    // Optionals tab accessible after all hotels selected
+    if (tab === 'optionals') {
       return bookingState.selectedFlight !== null && allHotelLocationsSelected;
     }
+
+    // Review tab accessible after optionals tab is visited (user has seen optionals)
+    // Note: If user goes back to change hotels, they must revisit optionals tab before review
+    // This ensures they re-confirm optional services if passenger counts change
+    if (tab === 'review') {
+      const optionalsVisited = optionals.length === 0 || bookingState.currentTab === 'optionals' || bookingState.currentTab === 'review';
+      return bookingState.selectedFlight !== null && allHotelLocationsSelected && optionalsVisited;
+    }
+
     return false;
-  }, [bookingState.selectedFlight, bookingState.selectedHotels, updatedHotelLocations]);
+  }, [bookingState.selectedFlight, bookingState.selectedHotels, bookingState.currentTab, updatedHotelLocations, optionals.length]);
 
   // Set services function - runs in background without blocking UI
   const setServices = useCallback(async () => {
@@ -263,10 +347,23 @@ export default function AvailableServicesPage() {
         };
       });
 
+      // Build optionals payload
+      const optionalsPayload = Object.values(bookingState.selectedOptionals || {}).map(selection => ({
+        Code: selection.optional.Code || '',
+        Date: selection.date,
+        Adults: selection.adults?.toString(),
+        ChildAges: selection.childAges.join(','),
+        PickUp: selection.pickupLocation,
+        PickUpTime: selection.pickupTime,
+        Drop: selection.dropoffLocation,
+        ItemId: selection.optional.ItemId
+      }));
+
       const payload: SetServicesPayload = {
         SessionHash: SessionHash,
         FlightsSelectedSuperBB: { item: flightPayload },
-        HotelsSelected: { item: hotelPayload }
+        HotelsSelected: { item: hotelPayload },
+        OptionalsSelected: optionalsPayload.length > 0 ? { item: optionalsPayload } : undefined
       };
 
       const result = await SetProductServices(code, payload);
@@ -289,7 +386,7 @@ export default function AvailableServicesPage() {
         console.log('setServices completed');
       }
     }
-  }, [bookingState.selectedFlight, bookingState.selectedHotels, lookupMaps.roomsMap, SessionHash]);
+  }, [bookingState.selectedFlight, bookingState.selectedHotels, bookingState.selectedOptionals, lookupMaps.roomsMap, SessionHash]);
 
 
   // Effect to trigger setServices when review tab becomes available
@@ -446,6 +543,29 @@ export default function AvailableServicesPage() {
     setBookingState(prev => ({ ...prev, selectedInsurance: insuranceId }));
   }, [setBookingState]);
 
+  // Handle optional service selection
+  const handleOptionalSelection = useCallback((
+    optionalCode: string,
+    selection: OptionalServiceSelection | null
+  ) => {
+    setBookingState(prev => {
+      if (selection === null) {
+        // Remove the optional
+        const { [optionalCode]: removed, ...rest } = prev.selectedOptionals;
+        return { ...prev, selectedOptionals: rest };
+      } else {
+        // Add or update the optional
+        return {
+          ...prev,
+          selectedOptionals: {
+            ...prev.selectedOptionals,
+            [optionalCode]: selection
+          }
+        };
+      }
+    });
+  }, [setBookingState]);
+
   // Loading state
   if (loading && !isDone) {
     return (
@@ -584,6 +704,42 @@ export default function AvailableServicesPage() {
                 hasMore={filteredData.currentLocation?.HasMore || false}
                 updateLookupMapsWithRooms={updateLookupMapsWithRooms}
                 updateHotelLocationsWithNewHotels={updateHotelLocationsWithNewHotels}
+              />
+            )}
+
+            {/* Optionals Tab */}
+            {bookingState.currentTab === 'optionals' && (
+              <OptionalsTab
+                optionals={optionals}
+                selectedOptionals={bookingState.selectedOptionals || {}}
+                onOptionalSelection={handleOptionalSelection}
+                flightData={bookingState.selectedFlight}
+                paxCounts={(() => {
+                  // Calculate passenger counts from hotel selections
+                  let adults = 0;
+                  const children: number[] = [];
+
+                  Object.values(bookingState.selectedHotels).forEach((hotelSel: any) => {
+                    const location = updatedHotelLocations.find((loc: any) =>
+                      loc.HotelOption?.item?.some((h: any) => h.Code === hotelSel.hotelCode)
+                    );
+                    const hotel = location?.HotelOption?.item?.find((h: any) => h.Code === hotelSel.hotelCode);
+
+                    if (hotel) {
+                      hotel.RoomsOccupancy.item.forEach((roomGroup: any) => {
+                        adults += parseInt(roomGroup.NumAdults || '0');
+                        const numChildren = parseInt(roomGroup.NumChilds || '0');
+                        // Add default ages for children
+                        for (let i = 0; i < numChildren; i++) {
+                          children.push(10); // Default age
+                        }
+                      });
+                    }
+                  });
+
+                  return { adults: adults || 1, children };
+                })()}
+                loading={optionalsLoading}
               />
             )}
 
