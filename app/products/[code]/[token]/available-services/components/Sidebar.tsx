@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { API_BASE_URL } from "@/app/config";
 import { BookingState, ProductData, LookupMaps } from '../types';
+import { calculateOptionalPrice } from '../utils/optionalsHelpers';
 
 interface SidebarProps {
   productData: ProductData;
@@ -185,7 +187,7 @@ const Sidebar = React.memo<SidebarProps>(({
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(`http://192.168.1.140:8080/api/dynamic/product/send-email?token=${token}`, {
+      const response = await fetch(`${API_BASE_URL}/dynamic/product/send-email?token=${token}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -252,7 +254,78 @@ const Sidebar = React.memo<SidebarProps>(({
                 </div>
               )}
             </div>
-            
+
+            {/* Trip Details */}
+            {(() => {
+              // Calculate total travelers and dates from hotel selections
+              let totalAdults = 0;
+              let totalChildren = 0;
+              let checkIn = '';
+              let checkOut = '';
+
+              // Extract data from first hotel selection
+              const firstHotelEntry = Object.entries(bookingState.selectedHotels)[0];
+              if (firstHotelEntry) {
+                const [locationCode, hotelSelection] = firstHotelEntry;
+                const location = hotelLocations.find((loc: any) => loc.Code === locationCode);
+                const selectedHotel = location?.HotelOption?.item?.find((h: any) => h.Code === hotelSelection.hotelCode);
+
+                if (selectedHotel) {
+                  checkIn = selectedHotel.CheckIn;
+                  checkOut = selectedHotel.CheckOut;
+
+                  // Sum up travelers from all room groups across all hotels
+                  Object.values(bookingState.selectedHotels).forEach((hotelSel: any) => {
+                    const loc = hotelLocations.find((l: any) =>
+                      l.HotelOption?.item?.some((h: any) => h.Code === hotelSel.hotelCode)
+                    );
+                    const hotel = loc?.HotelOption?.item?.find((h: any) => h.Code === hotelSel.hotelCode);
+
+                    if (hotel) {
+                      hotel.RoomsOccupancy.item.forEach((roomGroup: any) => {
+                        totalAdults += parseInt(roomGroup.NumAdults || '0');
+                        totalChildren += parseInt(roomGroup.NumChilds || '0');
+                      });
+                    }
+                  });
+                }
+              }
+
+              const totalTravelers = totalAdults + totalChildren;
+              const pricePerPerson = totalTravelers > 0 ? totalPrice / totalTravelers : 0;
+
+              const formatDate = (dateStr: string) => {
+                if (!dateStr) return '';
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+              };
+
+              return totalTravelers > 0 && checkIn ? (
+                <div className="bg-blue-50 rounded-lg p-4 mb-4">
+                  <h3 className="text-sm font-semibold text-blue-800 mb-2">
+                    Detalhes da Viagem
+                  </h3>
+                  <div className="space-y-1 text-xs text-gray-700">
+                    <div className="flex justify-between">
+                      <span>Viajantes:</span>
+                      <span>
+                        {totalAdults} adulto{totalAdults !== 1 ? 's' : ''}
+                        {totalChildren > 0 && `, ${totalChildren} criança${totalChildren !== 1 ? 's' : ''}`}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Data:</span>
+                      <span>{formatDate(checkIn)} - {formatDate(checkOut)}</span>
+                    </div>
+                    <div className="flex justify-between font-medium">
+                      <span>Preço por pessoa:</span>
+                      <span>€{pricePerPerson.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              ) : null;
+            })()}
+
             {/* Price Breakdown */}
             <div className="bg-blue-50 rounded-lg p-4">
               <h2 className="text-lg font-semibold text-blue-800 mb-3">Resumo de Preços</h2>
@@ -327,7 +400,15 @@ const Sidebar = React.memo<SidebarProps>(({
                     </div>
                   );
                 })()}
-                
+
+                {/* Optional Services */}
+                {Object.values(bookingState.selectedOptionals || {}).map((selection, idx) => (
+                  <div key={idx} className="flex justify-between text-sm">
+                    <span>{selection.optional.Name}:</span>
+                    <span>€{calculateOptionalPrice(selection).toFixed(2)}</span>
+                  </div>
+                ))}
+
                 <div className="border-t pt-2 mt-3 flex justify-between font-bold text-lg">
                   <span>Total:</span>
                   <span className="text-blue-600">€{totalPrice.toFixed(2)}</span>

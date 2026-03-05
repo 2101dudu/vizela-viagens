@@ -1,6 +1,8 @@
+import { API_BASE_URL } from "@/app/config";
+
 export const _get_token = async (password: string): Promise<string> => {
   try {
-    const response = await fetch('http://192.168.1.140:8080/api/admin/auth', {
+    const response = await fetch(`${API_BASE_URL}/admin/auth`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

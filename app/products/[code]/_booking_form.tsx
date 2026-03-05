@@ -57,42 +57,17 @@ interface BookingFormProps {
 
 export default function BookingForm({ data }: BookingFormProps) {
   const router = useRouter();
-  
-
-  if (data.Errors.HasErrors === "YES") {
-    return (
-      <div className="flex flex-col items-center justify-center px-4 py-8 max-w-md">
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-          <div className="text-red-600 text-lg font-medium mb-4">
-            Erro ao carregar informações
-          </div>
-          <p className="text-red-700 mb-6">
-            Ocorreu um erro ao carregar as informações de reserva do produto.
-          </p>
-          <button
-            onClick={() => router.back()}
-            className="bg-red-600 hover:bg-red-700 text-white py-3 px-6 rounded-xl font-medium transition-colors"
-          >
-            Voltar à página anterior
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   const params = useParams();
   const code = params.code; // code from URL
 
-  // flatten
+  // flatten (needed for hook initial values below)
   const locales = data.DepartureLocals.item;
   const dates = Array.isArray(data.DepartureDates.item) && data.DepartureDates.item.length > 0
     ? data.DepartureDates.item.map((d) => d.Date)
     : [];
   const roomTypes = data.RoomTypes.item;
-  const baseLocalsId = data.BaseLocals.item[0].Code;
-  const { MinNights, MaxNights } = data.BaseLocals.item[0];
 
-  // form state
+  // form state — all hooks must be called before any early return
   const [selectedDate, setSelectedDate] = useState(dates.length > 0 ? dates[0] : "");
   const [selectedLocale, setSelectedLocale] = useState(locales.length > 0 ? locales[0].Code : "");
   // Track nights for each base local
@@ -114,14 +89,35 @@ export default function BookingForm({ data }: BookingFormProps) {
       const defaultRoomType = roomTypes.length > 0 ? roomTypes[0] : null;
       return {
         roomTypeCode: defaultRoomType ? defaultRoomType.Code : "",
-        childAges: defaultRoomType 
-          ? Array.from({ length: Number(defaultRoomType.NumChilds) }).map(() => 
+        childAges: defaultRoomType
+          ? Array.from({ length: Number(defaultRoomType.NumChilds) }).map(() =>
               defaultRoomType.ChildAgeFrom ? Number(defaultRoomType.ChildAgeFrom) : ""
             )
           : [],
       };
     })
   );
+
+  if (data.Errors.HasErrors === "YES") {
+    return (
+      <div className="flex flex-col items-center justify-center px-4 py-8 max-w-md">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+          <div className="text-red-600 text-lg font-medium mb-4">
+            Erro ao carregar informações
+          </div>
+          <p className="text-red-700 mb-6">
+            Ocorreu um erro ao carregar as informações de reserva do produto.
+          </p>
+          <button
+            onClick={() => router.back()}
+            className="bg-red-600 hover:bg-red-700 text-white py-3 px-6 rounded-xl font-medium transition-colors"
+          >
+            Voltar à página anterior
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // when numRooms changes, resize rooms array
   const handleNumRoomsChange = (n: number) => {

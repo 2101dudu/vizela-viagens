@@ -35,11 +35,16 @@ const RoomCard = React.memo<RoomCardProps>(({
         </div>
         <div>
           <div className="font-medium">{room.Name}</div>
-          <div className="text-sm text-gray-600">
-            {room.BoardDescription}
+          <div className="text-sm text-gray-600 flex items-center gap-2">
+            <span>{room.BoardDescription}</span>
             {room.NonRefundable === "1" && (
-              <span className="ml-2 text-xs text-red-600 font-medium">
+              <span className="text-xs text-red-600 font-medium">
                 Não Reembolsável
+              </span>
+            )}
+            {parseFloat(room.UpgradeSupVal) > 0 && (
+              <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded">
+                Inclui upgrade
               </span>
             )}
           </div>
@@ -47,11 +52,6 @@ const RoomCard = React.memo<RoomCardProps>(({
       </div>
       <div className="text-right">
         <div className="text-lg font-bold text-green-600">€{room.SellValue}</div>
-        {parseFloat(room.UpgradeSupVal) > 0 && (
-          <div className="text-xs text-orange-600">
-            +€{parseFloat(room.UpgradeSupVal).toFixed(2)} upgrade
-          </div>
-        )}
       </div>
     </div>
   </div>

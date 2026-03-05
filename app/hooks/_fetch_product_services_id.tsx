@@ -1,3 +1,5 @@
+import { API_BASE_URL } from "@/app/config";
+
 interface RoomTypeOption {
     roomNum: string;
     code: string;
@@ -28,7 +30,7 @@ export interface SearchProducts {
 
 
 export default async function FetchProductID(payload: SearchProducts) {
-    const res = await fetch("http://192.168.1.140:8080/api/dynamic/product/available-services", {
+    const res = await fetch(`${API_BASE_URL}/dynamic/product/available-services`, {
       method: "POST",
       body: JSON.stringify(payload),
       headers: { "Content-Type": "application/json" }

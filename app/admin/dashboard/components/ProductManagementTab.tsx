@@ -7,6 +7,7 @@ import Select from 'react-select';
 import { _get_product_list, ProductWrapper } from '../../admin_hooks/_get_product_list';
 import Link from 'next/dist/client/link';
 import { FixedSizeList as List } from 'react-window';
+import { API_BASE_URL } from "@/app/config";
 
 const optionChoices = [
   { value: "charter", label: "charter" },
@@ -51,7 +52,7 @@ const ProductCard = React.memo(({
   }, [dropdownSelections, code, availableOptions]);
 
   return (
-    <div className="w-full relative"
+    <div className="w-full relative min-h-[180px]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       >
@@ -117,6 +118,13 @@ const ProductCard = React.memo(({
               placeholder={availableOptions.length === 0 ? "Todas as tags já estão adicionadas" : "Selecionar opções..."}
               className="text-sm"
               isDisabled={isSubmitting[code] || availableOptions.length === 0 || !enabled}
+              menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+              menuPosition="fixed"
+              menuPlacement="auto"
+              styles={{
+                menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                menu: (base) => ({ ...base, zIndex: 9999 }),
+              }}
             />
           </div>
         </div>
@@ -273,7 +281,7 @@ export default function ProductManagementTab() {
         return;
       }
 
-      const response = await fetch(`http://192.168.1.140:8080/api/admin/products/${productCode}/tags/add`, {
+      const response = await fetch(`${API_BASE_URL}/admin/products/${productCode}/tags/add`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -317,7 +325,7 @@ export default function ProductManagementTab() {
         return;
       }
 
-      const response = await fetch(`http://192.168.1.140:8080/api/admin/products/${productCode}/tags/remove/${optionToRemove}`, {
+      const response = await fetch(`${API_BASE_URL}/admin/products/${productCode}/tags/remove/${optionToRemove}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -354,7 +362,7 @@ export default function ProductManagementTab() {
         return;
       }
 
-      const url = `http://192.168.1.140:8080/api/admin/products/${productCode}/toggle`;
+      const url = `${API_BASE_URL}/admin/products/${productCode}/toggle`;
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -524,7 +532,7 @@ export default function ProductManagementTab() {
           <List
             height={600}
             itemCount={filteredProducts.length}
-            itemSize={200}
+            itemSize={210}
             width={"100%"}
           >
             {({ index, style }: { index: number; style: React.CSSProperties }) => (

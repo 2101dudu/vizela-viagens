@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { _Product } from "@/app/components/";
 import LoadingDots from "@/app/components/animations/loading_dots";
@@ -16,7 +16,7 @@ interface PaginatedResponse {
   hasMore: boolean;
 }
 
-export default function ResultsPage() {
+function ResultsPageContent() {
   const params = useSearchParams();
   const depDate = params.get("from");
   const country = params.get("country");
@@ -187,7 +187,7 @@ export default function ResultsPage() {
   }, [params]);
 
   return (
-    <div className="w-full bg-background text-foreground flex flex-col items-center">
+    <div className="w-full bg-background text-foreground flex flex-col items-center" suppressHydrationWarning>
       <div className="w-4/5 p-6 min-h-screen">
         {error && (
           <p className="text-center mt-20 text-2xl font-bold text-red-500">
@@ -298,5 +298,13 @@ export default function ResultsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ResultsPage() {
+  return (
+    <Suspense>
+      <ResultsPageContent />
+    </Suspense>
   );
 }

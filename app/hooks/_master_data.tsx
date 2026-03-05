@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { API_BASE_URL } from "@/app/config";
 
 export interface Country {
   Code: string;
@@ -24,7 +25,7 @@ export function useMasterData() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const res = await fetch("http://192.168.1.140:8080/api/get/master-data");
+      const res = await fetch(`${API_BASE_URL}/get/master-data`);
       const json = await res.json();
       let countries: Country[] = json.SearchProductMasterDataArray.CountriesArray.item;
       let locations: Location[] = json.SearchProductMasterDataArray.LocationsArray.item;

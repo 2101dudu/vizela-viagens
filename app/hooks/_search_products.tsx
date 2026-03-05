@@ -1,3 +1,5 @@
+import { API_BASE_URL } from "@/app/config";
+
 export interface SearchProducts {
   DepDate: string | null;
   Country: string | null;
@@ -5,7 +7,7 @@ export interface SearchProducts {
 }
 
 export default async function SearchProducts(payload: SearchProducts) {
-  const res = await fetch("http://192.168.1.140:8080/api/search/product", {
+  const res = await fetch(`${API_BASE_URL}/search/product`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

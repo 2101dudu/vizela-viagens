@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BookingState, ProductData, DynGetSimulationResponse } from '../types';
+import { calculateOptionalPrice, getOptionalTypeIcon } from '../utils/optionalsHelpers';
 
 interface ReviewTabProps {
   bookingState: BookingState;
@@ -216,6 +217,73 @@ const ReviewTab = React.memo<ReviewTabProps>(({
         </div>
       </div>
 
+      {/* Optional Services Summary */}
+      {Object.keys(bookingState.selectedOptionals || {}).length > 0 && (
+        <div className="bg-gray-50 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+              <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+            </svg>
+            🎯 Serviços Opcionais Selecionados
+          </h3>
+          <div className="space-y-3">
+            {Object.values(bookingState.selectedOptionals).map((selection, idx) => {
+              const price = calculateOptionalPrice(selection);
+
+              return (
+                <div key={idx} className="border-l-4 border-purple-500 pl-4 bg-white rounded-r p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span>{getOptionalTypeIcon(selection.optional.Type || '')}</span>
+                      <div className="font-medium text-gray-800">{selection.optional.Name}</div>
+                    </div>
+                    <span className="text-lg font-bold text-green-600">
+                      €{price.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-600 space-y-1">
+                    {selection.date && (
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">Data:</span>
+                        <span>{formatDate(selection.date)}</span>
+                      </div>
+                    )}
+                    {selection.pickupTime && (
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">Hora:</span>
+                        <span>{selection.pickupTime}</span>
+                      </div>
+                    )}
+                    {selection.pickupLocation && (
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">Recolha:</span>
+                        <span>{selection.pickupLocation}</span>
+                      </div>
+                    )}
+                    {selection.dropoffLocation && (
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">Entrega:</span>
+                        <span>{selection.dropoffLocation}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Passageiros:</span>
+                      <span>
+                        {selection.adults} adulto{selection.adults !== 1 ? 's' : ''}
+                        {selection.childAges.length > 0 &&
+                          `, ${selection.childAges.length} criança${selection.childAges.length !== 1 ? 's' : ''}`
+                        }
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Price Summary */}
       <div className="bg-blue-50 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-blue-800 mb-4">Resumo de Preços</h3>
@@ -286,7 +354,15 @@ const ReviewTab = React.memo<ReviewTabProps>(({
               </div>
             );
           })()}
-          
+
+          {/* Optional Services in Price Summary */}
+          {Object.values(bookingState.selectedOptionals || {}).map((selection, idx) => (
+            <div key={idx} className="flex justify-between text-sm">
+              <span>{selection.optional.Name}:</span>
+              <span>€{calculateOptionalPrice(selection).toFixed(2)}</span>
+            </div>
+          ))}
+
           <div className="border-t pt-2 mt-2 flex justify-between font-bold text-lg">
             <span>Total:</span>
             <span className="text-blue-600">€{totalPrice.toFixed(2)}</span>

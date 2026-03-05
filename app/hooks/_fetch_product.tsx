@@ -1,4 +1,5 @@
 import { ApiData } from "../products/[code]/_booking_form";
+import { API_BASE_URL } from "@/app/config";
 
 export interface TextContent {
     Type: string;
@@ -19,7 +20,7 @@ export interface ResponseData {
 
 
 export default async function FetchProduct(code: string) {
-    const res = await fetch(`http://192.168.1.140:8080/api/get/product/${code}`);
+    const res = await fetch(`${API_BASE_URL}/get/product/${code}`);
     if (!res.ok) throw new Error("Failed to fetch product");
 
     const product = await res.json();
