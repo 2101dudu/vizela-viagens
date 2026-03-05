@@ -48,7 +48,8 @@ const FlightGroupCard = React.memo<FlightGroupCardProps>(({
     {/* Individual Flights */}
     <div className="space-y-3">
       {flightGroup.Flights.item.map((flight, flightIndex) => {
-        const bagCount = parseInt(flight.Bag.replace('PC', '')) || 0;
+        var bagCount = parseInt(flight.Bag.replace('PC', '')) || 0;
+        if (bagCount > 5) bagCount = 1; // a bagCount value greater than 5 is actually an indication of the bag's weight, so we will just show 1 bag icon in this case
         
         return (
             <div
