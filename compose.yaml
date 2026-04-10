@@ -7,14 +7,15 @@ services:
         - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
     container_name: vizela-viagens-web
     restart: always
+    ports:
+      - "3000:3000"
     environment:
       - NODE_ENV=production
       - BACKEND_URL_INTERNAL=${BACKEND_URL_INTERNAL}
     networks:
-      exposed:
-        ipv4_address: 172.30.0.190
+      - exposed
 
 networks:
   exposed:
     external: true
-    name: blackmesa
+    name: tarmac
