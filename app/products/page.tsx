@@ -3,10 +3,22 @@
 import { useEffect, useState, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { _Product } from "@/app/components/";
-import LoadingDots from "@/app/components/animations/loading_dots";
 import { _FadeIn } from "@/app/components/";
 import SearchProducts from "@/app/hooks/_search_products";
 import FetchMoreProducts from "@/app/hooks/_search_more_products";
+
+function ProductSkeleton() {
+  return (
+    <div className="mx-auto bg-white rounded-lg shadow-lg flex flex-col animate-pulse">
+      <div className="w-full max-w-md aspect-[4/3] bg-gray-300 rounded-t-lg" />
+      <div className="p-2 flex flex-col items-center gap-2">
+        <div className="h-6 w-full bg-gray-200 rounded" />
+        <div className="h-5 w-2/3 bg-gray-200 rounded" />
+        <div className="h-10 w-full bg-gray-300 rounded-lg mt-2" />
+      </div>
+    </div>
+  );
+}
 
 interface Product {}
 
@@ -195,15 +207,14 @@ function ResultsPageContent() {
           </p>
         )}
 
-        {loading ? (
-          <LoadingDots />
-        ) : products === null ? (
+        <h1 className="text-2xl font-bold mb-4">Viagens</h1>
+
+        {!loading && products !== null && products.length === 0 && (
           <div className="text-center mt-20 text-2xl font-bold">
             Nenhum resultado encontrado.
           </div>
-        ) : (
-          <h1 className="text-2xl font-bold mb-4">Viagens</h1>
         )}
+
         <div className="w-full flex flex-wrap gap-2 justify-between">
           {/* Sort/filter controls */}
           <div className="flex flex-col gap-2 w-1/5 min-w-[180px] mr-4">
@@ -274,15 +285,21 @@ function ResultsPageContent() {
           </div>
           {/* Product listings */}
           <div className="flex-1 flex flex-wrap gap-2 justify-between">
-            {products?.map((product, i) => (
-              <div key={i} className="w-[30%] min-w-[200px]">
-                <_FadeIn key={i} delay={(i % 2) * 100}>
-                  <_Product product={product} />
-                </_FadeIn>
-              </div>
-            ))}
+            {loading
+              ? [...Array(6)].map((_, i) => (
+                  <div key={i} className="w-[30%] min-w-[200px]">
+                    <ProductSkeleton />
+                  </div>
+                ))
+              : products?.map((product, i) => (
+                  <div key={i} className="w-[30%] min-w-[200px]">
+                    <_FadeIn key={i} delay={(i % 2) * 100}>
+                      <_Product product={product} />
+                    </_FadeIn>
+                  </div>
+                ))}
 
-            {token && hasMore && (
+            {!loading && token && hasMore && (
               <div className="w-full text-center mt-6">
                 <button
                   onClick={handleSeeMore}

@@ -45,7 +45,49 @@ export default function ProductPage() {
     fetchProduct();
   }, [code]);
 
-  if (loading) return <p>Loading product...</p>;
+  if (loading) return (
+    <div className="animate-pulse">
+      {/* Header image skeleton */}
+      <div className="relative w-full h-64 md:h-96 bg-gray-300">
+        <div className="absolute inset-0 bg-black bg-opacity-30 flex flex-col items-center justify-center gap-4">
+          <div className="h-10 w-2/3 bg-gray-400 rounded-lg" />
+          <div className="h-8 w-1/4 bg-gray-400 rounded-lg" />
+        </div>
+      </div>
+
+      {/* Body skeleton */}
+      <div className="w-4/5 p-6 mx-auto">
+        <div className="w-full flex justify-between">
+          {/* Booking form skeleton */}
+          <div className="flex flex-col space-y-4 px-4 max-w-md w-full">
+            <div className="h-8 w-3/4 bg-gray-200 rounded mb-4" />
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="flex flex-col gap-1">
+                <div className="h-4 w-1/3 bg-gray-200 rounded" />
+                <div className="h-12 w-full bg-gray-200 rounded-xl" />
+              </div>
+            ))}
+            <div className="mt-4 h-12 w-full bg-gray-300 rounded-xl" />
+          </div>
+
+          {/* Accordion skeleton */}
+          <div className="w-4/5 ml-6">
+            <div className="h-6 w-48 bg-gray-200 rounded mb-4" />
+            <div className="flex flex-col gap-2">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="border rounded-lg bg-white shadow">
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <div className="h-5 w-40 bg-gray-200 rounded" />
+                    <div className="h-5 w-5 bg-gray-200 rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
   if (error) return <p className="text-red-500">{error}</p>;
   if (!product) return <p>No product found.</p>;
 
