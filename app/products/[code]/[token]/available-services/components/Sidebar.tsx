@@ -368,7 +368,7 @@ const Sidebar = React.memo<SidebarProps>(({
                         
                         if (!room) return null;
                         
-                        const roomPrice = parseFloat(room.SellValue);
+                        const roomPrice = parseFloat(room.UpgradeSupVal);
                         hotelTotalPrice += roomPrice;
                         
                         return (

@@ -129,7 +129,7 @@ const ReviewTab = React.memo<ReviewTabProps>(({
                           
                           if (!room) return null;
                           
-                          const roomPrice = parseFloat(room.SellValue);
+                          const roomPrice = parseFloat(room.UpgradeSupVal);
                           totalHotelPrice += roomPrice;
                           
                           return (
@@ -318,7 +318,7 @@ const ReviewTab = React.memo<ReviewTabProps>(({
               );
               
               if (room) {
-                const roomPrice = parseFloat(room.SellValue);
+                const roomPrice = parseFloat(room.UpgradeSupVal);
                 totalHotelPrice += roomPrice;
                 roomEntries.push(
                   <div key={`${roomGroupId}-${roomSelection.roomCode}`} className="flex justify-between text-xs text-gray-600 ml-4">

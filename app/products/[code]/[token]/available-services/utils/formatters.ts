@@ -22,7 +22,7 @@ export const calculateFlightPrice = (option: any): number => {
 };
 
 export const calculateRoomPrice = (room: any): number => {
-  return parseFloat(room.SellValue) || 0;
+  return parseFloat(room.UpgradeSupVal) || 0;
 };
 
 export const calculateInsurancePrice = (upgrade: any): number => {

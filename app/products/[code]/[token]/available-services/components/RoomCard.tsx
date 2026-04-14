@@ -51,7 +51,7 @@ const RoomCard = React.memo<RoomCardProps>(({
         </div>
       </div>
       <div className="text-right">
-        <div className="text-lg font-bold text-green-600">€{room.SellValue}</div>
+        <div className="text-lg font-bold text-green-600">+€{room.UpgradeSupVal}</div>
       </div>
     </div>
   </div>
