@@ -16,6 +16,8 @@ export const metadata: Metadata = {
   description: "Vizela Viagens",
 };
 
+const isAdminMode = process.env.APP_MODE === 'admin';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -24,9 +26,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${poppins.variable} antialiased`}>
-        <_NavBar />
-        <div className="pt-20">{children}</div>
-        <_Footer />
+        {!isAdminMode && <_NavBar />}
+        <div className={isAdminMode ? '' : 'pt-20'}>{children}</div>
+        {!isAdminMode && <_Footer />}
       </body>
     </html>
   );

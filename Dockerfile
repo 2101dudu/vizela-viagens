@@ -12,6 +12,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ARG NEXT_PUBLIC_API_BASE_URL
 ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+ARG APP_MODE=public
+ENV APP_MODE=${APP_MODE}
 RUN npm run build
 
 # Stage 3: Production runner
@@ -19,6 +21,8 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
+ARG APP_MODE=public
+ENV APP_MODE=${APP_MODE}
 
 # Create a non-root user for security
 RUN addgroup --system --gid 1001 nodejs

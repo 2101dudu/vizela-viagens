@@ -1,21 +1,32 @@
 services:
-  vizela-app:
+  vizela-public:
     build:
       context: .
       dockerfile: Dockerfile
       args:
         - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
-    container_name: vizela-viagens-web
+        - APP_MODE=public
+    container_name: vizela-public
     restart: always
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
       - BACKEND_URL_INTERNAL=${BACKEND_URL_INTERNAL}
-    networks:
-      - exposed
+      - APP_MODE=public
 
-networks:
-  exposed:
-    external: true
-    name: tarmac
+  vizela-admin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+        - APP_MODE=admin
+    container_name: vizela-admin
+    restart: always
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=production
+      - BACKEND_URL_INTERNAL=${BACKEND_URL_INTERNAL}
+      - APP_MODE=admin

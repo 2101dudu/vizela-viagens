@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import webpack from "webpack";
 
 const nextConfig: NextConfig = {
   output: 'standalone',
@@ -35,6 +36,14 @@ const nextConfig: NextConfig = {
         pathname: '**',
       },
     ],
+  },
+  webpack(config) {
+    config.plugins.push(
+      new webpack.DefinePlugin({
+        'process.env.APP_MODE': JSON.stringify(process.env.APP_MODE ?? 'public'),
+      })
+    );
+    return config;
   },
 };
 
