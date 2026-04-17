@@ -192,7 +192,7 @@ export default function AvailableServicesPage() {
           // Find existing hotels to avoid duplicates
           const existingHotelCodes = new Set(location.HotelOption?.item?.map((h: any) => h.Code) || []);
           const uniqueNewHotels = newHotels.filter(hotel => !existingHotelCodes.has(hotel.Code));
-          
+
           return {
             ...location,
             HotelOption: {
@@ -204,7 +204,21 @@ export default function AvailableServicesPage() {
         return location;
       });
     });
-  }, []);
+
+    // Add the new hotels' rooms to the lookup map so setServices can build the payload
+    setLookupMaps(prevMaps => {
+      const updatedRoomsMap = new Map(prevMaps.roomsMap);
+      newHotels.forEach(hotel => {
+        hotel.RoomsOccupancy?.item?.forEach((roomGroup: any) => {
+          roomGroup.Rooms?.item?.forEach((room: any) => {
+            const key = `${hotel.Code}-${room.Code}-${room.RoomNum}`;
+            updatedRoomsMap.set(key, { ...room, hotelCode: hotel.Code, roomGroup: roomGroup.RoomGroup });
+          });
+        });
+      });
+      return { ...prevMaps, roomsMap: updatedRoomsMap };
+    });
+  }, [setLookupMaps]);
 
   // Hotel room selection handler
   const handleHotelRoomSelection = useCallback((hotelCode: string, roomGroupId: string, roomCode: string, roomNum: string) => {
@@ -389,20 +403,36 @@ export default function AvailableServicesPage() {
   }, [bookingState.selectedFlight, bookingState.selectedHotels, bookingState.selectedOptionals, lookupMaps.roomsMap, SessionHash]);
 
 
-  // Effect to trigger setServices when review tab becomes available
-  React.useEffect(() => {
-    const reviewTabAvailable = canAccessTab('review');
+  // Refs so the effect below can always read the latest values without depending on them
+  const updatedHotelLocationsRef = React.useRef(updatedHotelLocations);
+  updatedHotelLocationsRef.current = updatedHotelLocations;
+  const setServicesRef = React.useRef(setServices);
+  setServicesRef.current = setServices;
 
-    if (reviewTabAvailable && bookingState.selectedFlight && Object.keys(bookingState.selectedHotels).length > 0) {
-      setServices();
+  // Pre-fire setServices when required selections (flight + all hotel rooms) are complete
+  // or when the user updates any of those selections.
+  // Tab switches, hotel-list expansions, and room-list prefetches must NOT trigger this.
+  React.useEffect(() => {
+    const flight = bookingState.selectedFlight;
+    const hotels = bookingState.selectedHotels;
+
+    if (!flight || Object.keys(hotels).length === 0) return;
+
+    const locations = updatedHotelLocationsRef.current;
+    const allHotelLocationsSelected = locations.every(location => {
+      const hotelSelection = hotels[location.Code];
+      if (!hotelSelection) return false;
+      const hotelData = location.HotelOption?.item?.find((h: any) => h.Code === hotelSelection.hotelCode);
+      if (!hotelData) return false;
+      const requiredRoomGroups = hotelData.RoomsOccupancy.item.length;
+      const selectedRoomGroups = Object.keys(hotelSelection.roomSelections || {}).length;
+      return selectedRoomGroups === requiredRoomGroups;
+    });
+
+    if (allHotelLocationsSelected) {
+      setServicesRef.current();
     }
-  }, [
-    bookingState.selectedFlight, 
-    bookingState.selectedHotels, 
-    updatedHotelLocations.length, 
-    canAccessTab,
-    setServices
-  ]);
+  }, [bookingState.selectedFlight, bookingState.selectedHotels, bookingState.selectedOptionals]);
 
 
   // Effect to clear loading state when simulToken becomes available
