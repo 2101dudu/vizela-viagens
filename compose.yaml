@@ -14,6 +14,9 @@ services:
       - NODE_ENV=production
       - BACKEND_URL_INTERNAL=${BACKEND_URL_INTERNAL}
       - APP_MODE=public
+    networks:
+      - exposed
+
 
   vizela-admin:
     build:
@@ -30,3 +33,10 @@ services:
       - NODE_ENV=production
       - BACKEND_URL_INTERNAL=${BACKEND_URL_INTERNAL}
       - APP_MODE=admin
+    networks:
+      - exposed
+
+networks:
+  exposed:
+    external: true
+    name: tarmac
